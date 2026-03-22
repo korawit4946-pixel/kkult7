@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KKULT Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--j:#1a6fa8;--jl:#eef7ff;--jb:#84c99e;--s:#8b5e00;--sl:#fef9ec;--sb:#d4a853;--red:#a84b38;--bg:#f5f0eb;--white:#fff;--text:#2a1a0e;--muted:#a88060;--border:#e8e0d8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Sarabun',sans-serif;padding:12px;color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto}
+.logo{font-family:'Kanit',sans-serif;font-size:20px;font-weight:800;text-align:center;color:var(--red);letter-spacing:1px;margin-bottom:2px}
+.logo-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px}
+.sec-label{font-family:'Kanit',sans-serif;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:6px}
+.btn-mode{padding:10px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;background:var(--white);width:100%}
+.btn-mode b{font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;color:#888;display:block}
+.btn-mode small{font-size:10px;color:#bbb;display:block;margin-top:2px}
+.btn-mode.act{border-color:var(--red);background:var(--red)}
+.btn-mode.act b,.btn-mode.act small{color:#fff}
+.btn-tier{padding:10px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;background:var(--white);width:100%}
+.btn-tier b{font-size:14px;font-weight:700;display:block}
+.btn-tier small{font-size:10px;display:block;margin-top:1px;opacity:.7}
+.tj{border-color:var(--j);background:var(--jl)}.tj b,.tj small{color:var(--j)}
+.ts{border-color:var(--s);background:var(--sl)}.ts b,.ts small{color:var(--s)}
+.tj.act{background:var(--j)}.tj.act b,.tj.act small{color:#fff}
+.ts.act{background:var(--s)}.ts.act b,.ts.act small{color:#fff}
+.pbtn{padding:9px 4px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;text-align:center;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;color:#888;background:var(--white);width:100%}
+.rc{border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);margin-bottom:14px}
+.rh{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:.5px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rl{font-size:12px;color:#777}.rl small{display:block;font-size:10px;color:#bbb;margin-top:1px}
+.rv{font-weight:700;font-size:14px;color:var(--text)}
+.hj{color:var(--j)!important;background:var(--jl);padding:3px 10px;border-radius:5px}
+.hs{color:var(--s)!important;background:var(--sl);padding:3px 10px;border-radius:5px}
+.hd{color:#fff!important;background:#333;padding:3px 10px;border-radius:5px}
+.dv{height:.5px;background:var(--border);margin:0 16px}
+.summary{background:var(--bg);font-size:12px}
+.adm{padding:10px 16px;color:var(--muted);line-height:1.9}
+.adm-badge{display:inline-block;font-size:10px;background:#e0d8d0;color:#888;border-radius:3px;padding:1px 6px;margin-right:4px}
+.sep{display:flex;align-items:center;gap:8px;padding:4px 16px}
+.sep-line{flex:1;height:1px;background:#c8b99a}
+.sep-txt{font-size:10px;color:var(--muted);white-space:nowrap}
+.tut{padding:10px 16px;background:#fff8f0;color:var(--text);line-height:1.9;font-size:12px}
+.cp-wrap{padding:8px 16px 14px;background:var(--bg)}
+.cp-btn{width:100%;padding:12px;border-radius:9px;border:none;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo">KKULT</div>
+  <div class="logo-sub">คำนวณราคา · Admin Tool</div>
+
+  <div class="sec-label">โหมด</div>
+  <div class="g2" id="mw"></div>
+
+  <div class="sec-label">Tier</div>
+  <div class="g2" id="tw"></div>
+
+  <div id="ps">
+    <div class="sec-label">ชั่วโมง</div>
+    <div class="g4" id="pkw"></div>
+  </div>
+
+  <div class="sec-label">จำนวนคน</div>
+  <div class="g5" id="pw1"></div>
+  <div class="g5" id="pw2"></div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const fmt=n=>n.toLocaleString('th-TH');
+const D={
+  j:{
+    10:{adv:[600,600,600,600,600,600,600,600,600,600],kkult:[400,1000,1100,1400,1900,2400,2900,3400,3900,4400],tadv:[200,200,700,1000,1100,1200,1300,1400,1500,1600],day:[1000,700,400,300,300,300,300,300,300,300],tutor:[1200,1600,1900,2200,2600,3000,3400,3800,4200,4600]},
+    15:{adv:[700,700,700,700,700,700,700,700,700,700],kkult:[400,1100,1200,1400,2000,2600,3200,3800,4400,5000],tadv:[300,300,900,1400,1500,1600,1700,1800,1900,2000],day:[1400,1000,600,400,400,400,400,400,400,400],tutor:[1700,2300,2700,3000,3500,4000,4500,5000,5500,6000]},
+    20:{adv:[800,800,800,800,800,800,800,800,800,800],kkult:[400,1200,1300,1400,2100,2800,3500,4200,4900,5600],tadv:[400,400,1100,1800,1900,2000,2100,2200,2300,2400],day:[1800,1300,800,500,500,500,500,500,500,500],tutor:[2200,3000,3500,3800,4400,5000,5600,6200,6800,7400]},
+    25:{adv:[900,900,900,900,900,900,900,900,900,900],kkult:[400,1300,1400,1400,2200,3000,3800,4600,5400,6200],tadv:[500,500,1300,2200,2300,2400,2500,2600,2700,2800],day:[2200,1600,1000,600,600,600,600,600,600,600],tutor:[2700,3700,4300,4600,5300,6000,6700,7400,8100,8800]}
+  },
+  s:{
+    10:{adv:[800,800,800,800,800,800,800,800,800,800],kkult:[500,1300,1400,1900,2600,3300,4000,4700,5400,6100],tadv:[300,300,1000,1300,1400,1500,1600,1700,1800,1900],day:[1200,800,400,300,300,300,300,300,300,300],tutor:[1500,1900,2200,2500,2900,3300,3700,4100,4500,4900]},
+    15:{adv:[900,900,900,900,900,900,900,900,900,900],kkult:[500,1500,1700,2200,3100,4000,4900,5800,6700,7600],tadv:[400,300,1000,1400,1400,1400,1400,1400,1400,1400],day:[1700,1200,700,500,500,500,500,500,500,500],tutor:[2100,2700,3100,3400,3900,4400,4900,5400,5900,6400]},
+    20:{adv:[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],kkult:[500,1700,2000,2500,3600,4700,5800,6900,8000,9100],tadv:[500,300,1000,1500,1400,1300,1200,1100,1000,900],day:[2200,1600,1000,700,700,700,700,700,700,700],tutor:[2700,3500,4000,4300,4900,5500,6100,6700,7300,7900]},
+    25:{adv:[1100,1100,1100,1100,1100,1100,1100,1100,1100,1100],kkult:[500,1900,2300,2600,3900,5200,6500,7800,9100,10400],tadv:[600,300,1000,1800,1600,1400,1200,1000,800,600],day:[2700,2000,1300,900,900,900,900,900,900,900],tutor:[3300,4300,4900,5400,6100,6800,7500,8200,8900,9600]}
+  }
+};
+const TR={
+  j:[{pp:190,tot:190,tutor:120,kkult:70},{pp:150,tot:300,tutor:160,kkult:140},{pp:120,tot:360,tutor:190,kkult:170},{pp:100,tot:400,tutor:220,kkult:180},{pp:100,tot:500,tutor:260,kkult:240},{pp:100,tot:600,tutor:300,kkult:300},{pp:100,tot:700,tutor:340,kkult:360},{pp:100,tot:800,tutor:380,kkult:420},{pp:100,tot:900,tutor:420,kkult:480},{pp:100,tot:1000,tutor:460,kkult:540}],
+  s:[{pp:240,tot:240,tutor:150,kkult:90},{pp:190,tot:380,tutor:190,kkult:190},{pp:150,tot:450,tutor:220,kkult:230},{pp:130,tot:520,tutor:250,kkult:270},{pp:130,tot:650,tutor:290,kkult:360},{pp:130,tot:780,tutor:330,kkult:450},{pp:130,tot:910,tutor:370,kkult:540},{pp:130,tot:1040,tutor:410,kkult:630},{pp:130,tot:1170,tutor:450,kkult:720},{pp:130,tot:1300,tutor:490,kkult:810}]
+};
+
+let mode='trial',tier='j',pkg=10,ppl=1;
+
+function c(){return tier==='j'?'#1a6fa8':'#8b5e00';}
+function l(){return tier==='j'?'#eef7ff':'#fef9ec';}
+function hc(){return tier==='j'?'hj':'hs';}
+
+function tutorMsg(isPkg,d,n,hrs){
+  if(!isPkg){
+    const payPart = n>1 ? `คนละ ${fmt(d.pp)} รวม ${fmt(d.tot)} บาท` : `${fmt(d.tot)} บาท`;
+    return `ค่าสอนงานนี้ 1 ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart}`;
+  }
+  const payPart = n>1 ? `คนละ ${fmt(d.day)} รวม ${fmt(d.dayT)} บาท` : `${fmt(d.dayT)} บาท`;
+  return `ค่าสอนงานนี้ ${hrs} ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart} โดยแบ่งจ่ายทีละครึ่ง 2 ครั้ง [เริ่มการเรียนการสอน/กลางคอร์ส] ส่วนอีก ${fmt(d.tadv)} บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอนวันแรกมานะครับ`;
+}
+
+function doCopy(){
+  const txt=document.getElementById('cp-txt').value;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(flashCopy);}
+  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);flashCopy();}
+}
+function flashCopy(){
+  const b=document.getElementById('cpb');
+  b.textContent='✓ คัดลอกแล้ว!';b.style.background='#1a5c3a';
+  setTimeout(()=>{b.textContent='📋 คัดลอกข้อความให้ติวเตอร์';b.style.background=c();},2000);
+}
+
+function rrow(l,s,v,h=''){
+  const cls=h==='tier'?hc():h==='dark'?'hd':'';
+  return `<div class="rrow"><div class="rl">${l}${s?`<small>${s}</small>`:''}</div><div class="rv ${cls}">${v}</div></div>`;
+}
+
+function render(){
+  const isJ=tier==='j';
+  const col=c();
+  const i=ppl-1;
+  const n=ppl;
+  const tl=isJ?'KKULT JUNIOR':'KKULT SENIOR';
+
+  // mode
+  document.getElementById('mw').innerHTML=[{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'},{v:'pkg',b:'📦 แพ็กเกจ',s:'ซื้อคอร์ส'}].map(m=>
+    `<button class="btn-mode ${mode===m.v?'act':''}" onclick="setM('${m.v}')"><b>${m.b}</b><small>${m.s}</small></button>`).join('');
+
+  // tier
+  document.getElementById('tw').innerHTML=[{v:'j',b:'Junior',s:'อนุบาล–ม.3'},{v:'s',b:'Senior',s:'ม.4–ม.6+ติวสอบ'}].map(t=>
+    `<button class="btn-tier t${t.v} ${tier===t.v?'act':''}" onclick="setT('${t.v}')"><b>${t.b}</b><small>${t.s}</small></button>`).join('');
+
+  // pkg
+  document.getElementById('ps').style.display=mode==='pkg'?'block':'none';
+  document.getElementById('pkw').innerHTML=[10,15,20,25].map(h=>
+    `<button class="pbtn" style="${pkg===h?`border-color:${col};background:${col};color:#fff`:''}" onclick="setP(${h})">${h} ชม.</button>`).join('');
+
+  // ppl
+  const pb=Array.from({length:10},(_,k)=>k+1).map(p=>
+    `<button class="pbtn" style="${ppl===p?`border-color:${col};background:${col};color:#fff`:''}" onclick="setPpl(${p})">${p}</button>`);
+  document.getElementById('pw1').innerHTML=pb.slice(0,5).join('');
+  document.getElementById('pw2').innerHTML=pb.slice(5).join('');
+
+  let html='';
+
+  if(mode==='trial'){
+    const t=TR[tier][i];
+    const uPub=(D[tier][10].adv[i]+D[tier][10].day[i])*n;
+    const uExtra=uPub-t.tot;
+    const msg=tutorMsg(false,t,n,1);
+    html=`<div class="rc">
+      <div class="rh" style="background:${col}">
+        <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · ${n} คน</div></div>
+        <div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">${fmt(t.tot)}</div><div style="font-size:10px;opacity:.7">บาท</div></div>
+      </div>
+      <div style="background:#fff">
+        ${rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')}
+        ${rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')}
+        ${rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')}
+      </div>
+      <div class="summary">
+        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(t.tot)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(t.kkult)} บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">${fmt(t.tutor)} บาท</b></div>
+      </div>
+    </div>
+    <div style="background:${l()};border:1px solid ${isJ?'var(--jb)':'var(--sb)'};border-radius:10px;padding:12px 14px;font-size:11px;color:${col};line-height:1.9;margin-bottom:14px">
+      💡 <b>ถ้าต่อแพ็ก 10 ชม. (${fmt(uPub)} บาท)</b><br>หักค่าทดลอง ${fmt(t.tot)} บาท → จ่ายเพิ่มแค่ <b>${fmt(uExtra)} บาท</b> · เรียนรวม 10 ชม. ✓
+    </div>`;
+  } else {
+    const pd=D[tier][pkg];
+    const adv_t=pd.adv[i]*n;
+    const day_t=pd.day[i]*n;
+    const pub_pp=pd.adv[i]+pd.day[i];
+    const pub_t=pub_pp*n;
+    const msg=tutorMsg(true,{tadv:pd.tadv[i],day:pd.day[i],dayT:day_t,tutor:pd.tutor[i]},n,pkg);
+    html=`<div class="rc">
+      <div class="rh" style="background:${col}">
+        <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">${pkg} ชม. · ${n} คน</div></div>
+        <div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">${fmt(pub_t)}</div><div style="font-size:10px;opacity:.7">บาท · ${n} คน</div></div>
+      </div>
+      <div style="background:#fff">
+        ${rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')}
+        ${rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')}
+        ${rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')}
+        <div class="dv"></div>
+        ${rrow('จ่ายวันเรียน/คน','',fmt(pd.day[i])+' บาท')}
+        ${rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')}
+      </div>
+      <div class="summary">
+        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(adv_t)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(pd.kkult[i])} บาท</b> · โอนให้ครู <b style="color:var(--text)">${fmt(pd.tadv[i])} บาท</b></div>
+        <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div>
+        <div class="tut">${msg.replace(/\n/g,'<br>')}</div>
+        <textarea id="cp-txt" style="position:absolute;left:-9999px">${msg}</textarea>
+        <div class="cp-wrap"><button id="cpb" class="cp-btn" style="background:${col}" onclick="doCopy()">📋 คัดลอกข้อความให้ติวเตอร์</button></div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('result').innerHTML=html;
+}
+
+function setM(m){mode=m;render();}
+function setT(t){tier=t;render();}
+function setP(p){pkg=p;render();}
+function setPpl(p){ppl=p;render();}
+
+render();
+</script>
+</body>
+</html>
