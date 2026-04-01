@@ -94,7 +94,7 @@ const TR={
   s:[{pp:240,tot:240,tutor:150,kkult:90},{pp:190,tot:380,tutor:190,kkult:190},{pp:150,tot:450,tutor:220,kkult:230},{pp:130,tot:520,tutor:250,kkult:270},{pp:130,tot:650,tutor:290,kkult:360},{pp:130,tot:780,tutor:330,kkult:450},{pp:130,tot:910,tutor:370,kkult:540},{pp:130,tot:1040,tutor:410,kkult:630},{pp:130,tot:1170,tutor:450,kkult:720},{pp:130,tot:1300,tutor:490,kkult:810}]
 };
 
-let mode='trial',tier='j',pkg=10,ppl=1;
+let mode='pkg',tier='j',pkg=10,ppl=1;
 
 function c(){return tier==='j'?'#1a6fa8':'#8b5e00';}
 function l(){return tier==='j'?'#eef7ff':'#fef9ec';}
@@ -106,7 +106,7 @@ function tutorMsg(isPkg,d,n,hrs){
     return `ค่าสอนงานนี้ 1 ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart}`;
   }
   const payPart = n>1 ? `คนละ ${fmt(d.day)} รวม ${fmt(d.dayT)} บาท` : `${fmt(d.dayT)} บาท`;
-  return `ค่าสอนงานนี้ ${hrs} ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart} โดยแบ่งจ่ายทีละครึ่ง 2 ครั้ง [เริ่มการเรียนการสอน/กลางคอร์ส] ส่วนอีก ${fmt(d.tadv)} บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอนวันแรกมานะครับ`;
+  return `ค่าสอนงานนี้ ${hrs} ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart} โดยแบ่งจ่ายทีละครึ่ง 2 ครั้ง [เริ่มการเรียนการสอน/กลางคอร์ส] ส่วนอีก ${fmt(d.tadv)} บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอน "ครั้งที่ 2" มานะครับ`;
 }
 
 function doCopy(){
@@ -132,20 +132,16 @@ function render(){
   const n=ppl;
   const tl=isJ?'KKULT JUNIOR':'KKULT SENIOR';
 
-  // mode
-  document.getElementById('mw').innerHTML=[{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'},{v:'pkg',b:'📦 แพ็กเกจ',s:'ซื้อคอร์ส'}].map(m=>
+  document.getElementById('mw').innerHTML=[{v:'pkg',b:'📦 คอร์ส',s:'ซื้อคอร์ส'},{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'}].map(m=>
     `<button class="btn-mode ${mode===m.v?'act':''}" onclick="setM('${m.v}')"><b>${m.b}</b><small>${m.s}</small></button>`).join('');
 
-  // tier
   document.getElementById('tw').innerHTML=[{v:'j',b:'Junior',s:'อนุบาล–ม.3'},{v:'s',b:'Senior',s:'ม.4–ม.6+ติวสอบ'}].map(t=>
     `<button class="btn-tier t${t.v} ${tier===t.v?'act':''}" onclick="setT('${t.v}')"><b>${t.b}</b><small>${t.s}</small></button>`).join('');
 
-  // pkg
   document.getElementById('ps').style.display=mode==='pkg'?'block':'none';
   document.getElementById('pkw').innerHTML=[10,15,20,25].map(h=>
     `<button class="pbtn" style="${pkg===h?`border-color:${col};background:${col};color:#fff`:''}" onclick="setP(${h})">${h} ชม.</button>`).join('');
 
-  // ppl
   const pb=Array.from({length:10},(_,k)=>k+1).map(p=>
     `<button class="pbtn" style="${ppl===p?`border-color:${col};background:${col};color:#fff`:''}" onclick="setPpl(${p})">${p}</button>`);
   document.getElementById('pw1').innerHTML=pb.slice(0,5).join('');
@@ -175,7 +171,7 @@ function render(){
       </div>
     </div>
     <div style="background:${l()};border:1px solid ${isJ?'var(--jb)':'var(--sb)'};border-radius:10px;padding:12px 14px;font-size:11px;color:${col};line-height:1.9;margin-bottom:14px">
-      💡 <b>ถ้าต่อแพ็ก 10 ชม. (${fmt(uPub)} บาท)</b><br>หักค่าทดลอง ${fmt(t.tot)} บาท → จ่ายเพิ่มแค่ <b>${fmt(uExtra)} บาท</b> · เรียนรวม 10 ชม. ✓
+      💡 <b>ถ้าต่อคอร์ส 10 ชม. (${fmt(uPub)} บาท)</b><br>หักค่าทดลอง ${fmt(t.tot)} บาท → จ่ายเพิ่มแค่ <b>${fmt(uExtra)} บาท</b> · เรียนรวม 10 ชม. ✓
     </div>`;
   } else {
     const pd=D[tier][pkg];
@@ -204,7 +200,7 @@ function render(){
         ${rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')}
       </div>
       <div class="summary">
-        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(adv_t)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(pd.kkult[i])} บาท</b> · โอนให้ครู <b style="color:var(--text)">${fmt(pd.tadv[i])} บาท</b></div>
+        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(adv_t)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(pd.kkult[i])} บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">${fmt(pd.tadv[i])} บาท</b></div>
         <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div>
         <div class="tut">${msg.replace(/\n/g,'<br>')}</div>
         <textarea id="cp-txt" style="position:absolute;left:-9999px">${msg}</textarea>
