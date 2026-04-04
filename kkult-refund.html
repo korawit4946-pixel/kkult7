@@ -2,363 +2,241 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KKULT คืนค่าเรียน</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>KKULT Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #f8fafc; font-family: 'Sarabun', 'Noto Sans Thai', sans-serif; color: #0f172a; min-height: 100vh; }
-  button { font-family: inherit; cursor: pointer; }
-
-  /* ── Header ── */
-  #header {
-    padding: 20px 20px 0;
-    transition: background 0.3s;
-  }
-  .header-inner { max-width: 700px; margin: 0 auto; }
-  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-  .logo { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 18px; backdrop-filter: blur(4px); flex-shrink: 0; }
-  .logo-text h1 { font-weight: 800; font-size: 16px; color: white; }
-  .logo-text p { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 1px; }
-
-  /* Tier buttons */
-  .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
-  .tier-btn {
-    border-radius: 12px; padding: 12px 16px; text-align: left;
-    transition: all 0.2s; border: 2px solid rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.12);
-  }
-  .tier-btn.active { border-color: white; background: white; }
-  .tier-btn .tier-name { font-weight: 800; font-size: 15px; color: white; }
-  .tier-btn.active .tier-name { color: var(--tier-primary); }
-  .tier-btn .tier-sub { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; }
-  .tier-btn.active .tier-sub { color: var(--tier-mid); }
-
-  /* Hrs + students */
-  .controls-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: 20px; }
-  .ctrl-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .hrs-row { display: flex; gap: 6px; }
-  .hrs-btn {
-    flex: 1; padding: 8px 4px; border-radius: 8px; font-weight: 700; font-size: 13px;
-    border: 1.5px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.12);
-    color: white; transition: all 0.15s;
-  }
-  .hrs-btn.active { border-color: white; background: white; color: var(--tier-primary); }
-  .students-row { display: flex; gap: 4px; flex-wrap: wrap; }
-  .stu-btn {
-    width: 34px; height: 34px; border-radius: 7px; font-weight: 700; font-size: 13px;
-    border: 1.5px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.12);
-    color: white; transition: all 0.15s;
-  }
-  .stu-btn.active { border-color: white; background: white; color: var(--tier-primary); }
-
-  /* ── Body ── */
-  #body { max-width: 700px; margin: 0 auto; padding: 20px; }
-
-  /* Info strip */
-  .info-strip {
-    border-radius: 12px; padding: 12px 16px;
-    display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
-    margin-bottom: 14px;
-    border: 1px solid var(--tier-border);
-    background: var(--tier-soft);
-  }
-  .info-cell { text-align: center; }
-  .info-cell .lbl { font-size: 10px; color: #64748b; margin-bottom: 3px; }
-  .info-cell .val { font-weight: 800; font-size: 14px; }
-
-  /* Hour selector */
-  .section-card {
-    background: white; border: 1px solid #e2e8f0; border-radius: 14px;
-    padding: 20px; margin-bottom: 14px;
-  }
-  .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .section-head h3 { font-weight: 700; font-size: 14px; }
-  .rate-note { font-size: 12px; color: #64748b; }
-
-  .hour-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .hour-btn {
-    width: 58px; height: 62px; border-radius: 10px; border: 1.5px solid #e2e8f0;
-    background: white; color: #64748b; font-weight: 500; font-size: 12px;
-    transition: all 0.15s; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 2px; flex-shrink: 0;
-  }
-  .hour-btn .h-label { font-weight: 700; font-size: 13px; }
-  .hour-btn .h-pct { font-size: 10px; opacity: 0.6; }
-  .hour-btn .h-refund { font-size: 11px; color: #059669; font-weight: 600; }
-  .hour-btn.active {
-    border-color: var(--tier-primary); background: var(--tier-soft);
-    color: var(--tier-primary); box-shadow: 0 2px 8px var(--tier-shadow);
-  }
-  .hour-btn.active .h-label { font-weight: 800; }
-  .hour-btn.active .h-refund { color: var(--tier-primary); font-weight: 700; }
-
-  /* Result cards — FIXED HEIGHT */
-  .result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-  .result-card {
-    border-radius: 14px; padding: 16px 12px; text-align: center;
-    height: 120px; /* fixed height */
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  }
-  .result-card .rc-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
-  .result-card .rc-val { font-size: 26px; font-weight: 800; line-height: 1; }
-  .result-card .rc-sub { font-size: 11px; color: #64748b; }
-  .result-card .rc-per { font-size: 12px; font-weight: 700; background: white; border-radius: 7px; padding: 3px 10px; margin-top: 2px; }
-
-  .card-green { background: #f0fdf4; border: 1.5px solid #a7f3d0; }
-  .card-green .rc-val { color: #059669; }
-  .card-green .rc-per { color: #059669; }
-  .card-amber { background: #fffbeb; border: 1.5px solid #fde68a; }
-  .card-amber .rc-val { color: #d97706; }
-
-  /* Copy box */
-  .copy-box { background: white; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
-  .copy-head { padding: 12px 18px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-  .copy-head h4 { font-weight: 700; font-size: 13px; }
-  .copy-btn {
-    background: #f1f5f9; border: 1px solid #e2e8f0; color: #64748b;
-    border-radius: 8px; padding: 6px 16px; font-size: 12px; font-weight: 700; transition: all 0.2s;
-  }
-  .copy-btn.copied { background: #f0fdf4; border-color: #a7f3d0; color: #059669; }
-  .copy-text {
-    margin: 0; padding: 14px 18px; font-size: 13px; line-height: 1.8;
-    background: #f8fafc; white-space: pre-wrap; font-family: 'Sarabun', sans-serif; color: #0f172a;
-  }
+:root{--j:#1a6fa8;--jl:#eef7ff;--jb:#84c99e;--s:#8b5e00;--sl:#fef9ec;--sb:#d4a853;--red:#a84b38;--bg:#f5f0eb;--white:#fff;--text:#2a1a0e;--muted:#a88060;--border:#e8e0d8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:'Sarabun',sans-serif;padding:12px;color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto}
+.logo{font-family:'Kanit',sans-serif;font-size:20px;font-weight:800;text-align:center;color:var(--red);letter-spacing:1px;margin-bottom:2px}
+.logo-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px}
+.sec-label{font-family:'Kanit',sans-serif;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:6px}
+.btn-mode{padding:10px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;background:var(--white);width:100%}
+.btn-mode b{font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;color:#888;display:block}
+.btn-mode small{font-size:10px;color:#bbb;display:block;margin-top:2px}
+.btn-mode.act{border-color:var(--red);background:var(--red)}
+.btn-mode.act b,.btn-mode.act small{color:#fff}
+.btn-tier{padding:10px;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;background:var(--white);width:100%}
+.btn-tier b{font-size:14px;font-weight:700;display:block}
+.btn-tier small{font-size:10px;display:block;margin-top:1px;opacity:.7}
+.tj{border-color:var(--j);background:var(--jl)}.tj b,.tj small{color:var(--j)}
+.ts{border-color:var(--s);background:var(--sl)}.ts b,.ts small{color:var(--s)}
+.tj.act{background:var(--j)}.tj.act b,.tj.act small{color:#fff}
+.ts.act{background:var(--s)}.ts.act b,.ts.act small{color:#fff}
+.pbtn{padding:9px 4px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer;text-align:center;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;color:#888;background:var(--white);width:100%}
+.rc{border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);margin-bottom:14px}
+.rh{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:.5px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rl{font-size:12px;color:#777}.rl small{display:block;font-size:10px;color:#bbb;margin-top:1px}
+.rv{font-weight:700;font-size:14px;color:var(--text)}
+.hj{color:var(--j)!important;background:var(--jl);padding:3px 10px;border-radius:5px}
+.hs{color:var(--s)!important;background:var(--sl);padding:3px 10px;border-radius:5px}
+.hd{color:#fff!important;background:#333;padding:3px 10px;border-radius:5px}
+.dv{height:.5px;background:var(--border);margin:0 16px}
+.summary{background:var(--bg);font-size:12px}
+.adm{padding:10px 16px;color:var(--muted);line-height:1.9}
+.adm-badge{display:inline-block;font-size:10px;background:#e0d8d0;color:#888;border-radius:3px;padding:1px 6px;margin-right:4px}
+.sep{display:flex;align-items:center;gap:8px;padding:4px 16px}
+.sep-line{flex:1;height:1px;background:#c8b99a}
+.sep-txt{font-size:10px;color:var(--muted);white-space:nowrap}
+.tut{padding:10px 16px;background:#fff8f0;color:var(--text);line-height:1.9;font-size:12px}
+.stu{padding:10px 16px;background:#f0fff4;color:var(--text);line-height:1.9;font-size:12px}
+.cp-wrap{padding:6px 16px;background:var(--bg)}
+.cp-wrap-last{padding:6px 16px 14px;background:var(--bg)}
+.cp-btn{width:100%;padding:12px;border-radius:9px;border:none;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer}
 </style>
 </head>
 <body>
-
-<div id="header">
-  <div class="header-inner">
-    <div class="header-top">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="logo">K</div>
-        <div class="logo-text">
-          <h1>KKULT คืนค่าเรียน</h1>
-          <p>คิดจากค่าเรียนส่วนที่เหลือ · commission ปลอดภัย</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tier-grid">
-      <button class="tier-btn active" onclick="setTier('junior')" id="btn-junior">
-        <div class="tier-name">JUNIOR</div>
-        <div class="tier-sub">อนุบาล – ม.3</div>
-      </button>
-      <button class="tier-btn" onclick="setTier('senior')" id="btn-senior">
-        <div class="tier-name">SENIOR</div>
-        <div class="tier-sub">ม.3ติวสอบ – ม.6+</div>
-      </button>
-    </div>
-
-    <div class="controls-row">
-      <div>
-        <div class="ctrl-label">ชั่วโมง</div>
-        <div class="hrs-row" id="hrs-row"></div>
-      </div>
-      <div>
-        <div class="ctrl-label">นักเรียน</div>
-        <div class="students-row" id="stu-row"></div>
-      </div>
-    </div>
+<div class="app">
+  <div class="logo">KKULT</div>
+  <div class="logo-sub">คำนวณราคา · Admin Tool</div>
+  <div class="sec-label">โหมด</div>
+  <div class="g2" id="mw"></div>
+  <div class="sec-label">Tier</div>
+  <div class="g2" id="tw"></div>
+  <div id="ps">
+    <div class="sec-label">ชั่วโมง</div>
+    <div class="g4" id="pkw"></div>
   </div>
+  <div class="sec-label">จำนวนคน</div>
+  <div class="g5" id="pw1"></div>
+  <div class="g5" id="pw2"></div>
+  <div id="result"></div>
 </div>
-
-<div id="body">
-  <div class="info-strip" id="info-strip">
-    <div class="info-cell"><div class="lbl">มัดจำรวม</div><div class="val" id="info-dep" style="color:var(--tier-primary)"></div></div>
-    <div class="info-cell"><div class="lbl">ค่าเรียนส่วนที่เหลือ</div><div class="val" id="info-day" style="color:#059669"></div></div>
-    <div class="info-cell"><div class="lbl">T รวม</div><div class="val" id="info-T" style="color:#0f172a"></div></div>
-    <div class="info-cell"><div class="lbl">Commission</div><div class="val" id="info-comm" style="color:#d97706"></div></div>
-  </div>
-
-  <div class="section-card">
-    <div class="section-head">
-      <h3>สอนไปแล้วกี่ชั่วโมง?</h3>
-      <span class="rate-note" id="rate-note"></span>
-    </div>
-    <div class="hour-grid" id="hour-grid"></div>
-  </div>
-
-  <div class="result-grid">
-    <div class="result-card card-green" id="card-refund">
-      <div class="rc-label">คืนน้องรวม</div>
-      <div class="rc-val" id="rc-refund"></div>
-      <div class="rc-sub" id="rc-refund-sub"></div>
-      <div class="rc-per" id="rc-per" style="display:none"></div>
-    </div>
-    <div class="result-card" id="card-tutor" style="background:var(--tier-soft);border:1.5px solid var(--tier-border)">
-      <div class="rc-label">ติวเตอร์ได้</div>
-      <div class="rc-val" id="rc-tutor" style="color:var(--tier-primary)"></div>
-      <div class="rc-sub" id="rc-tutor-sub"></div>
-    </div>
-    <div class="result-card card-amber">
-      <div class="rc-label">Commission KKULT</div>
-      <div class="rc-val" id="rc-comm"></div>
-      <div class="rc-sub" style="color:#059669;font-weight:700">✅ ปลอดภัย</div>
-    </div>
-  </div>
-
-  <div class="copy-box">
-    <div class="copy-head">
-      <h4>📨 ข้อความสำหรับส่งให้น้อง</h4>
-      <button class="copy-btn" id="copy-btn" onclick="copyMsg()">📋 คัดลอก</button>
-    </div>
-    <pre class="copy-text" id="copy-text"></pre>
-  </div>
-</div>
-
 <script>
-const PRICING = {
-  junior: {
-    10:{1:[600,400,1000,1200],2:[600,1000,1400,1600],3:[600,1100,1200,1900],4:[600,1400,1200,2200],5:[600,1900,1500,2600],6:[600,2400,1800,3000],7:[600,2900,2100,3400],8:[600,3400,2400,3800],9:[600,3900,2700,4200],10:[600,4400,3000,4600]},
-    15:{1:[700,400,1400,1700],2:[700,1100,2000,2300],3:[700,1200,1800,2700],4:[700,1400,1600,3000],5:[700,2000,2000,3500],6:[700,2600,2400,4000],7:[700,3200,2800,4500],8:[700,3800,3200,5000],9:[700,4400,3600,5500],10:[700,5000,4000,6000]},
-    20:{1:[800,400,1800,2200],2:[800,1200,2600,3000],3:[800,1300,2400,3500],4:[800,1400,2000,3800],5:[800,2100,2500,4400],6:[800,2800,3000,5000],7:[800,3500,3500,5600],8:[800,4200,4000,6200],9:[800,4900,4500,6800],10:[800,5600,5000,7400]},
-    25:{1:[900,400,2200,2700],2:[900,1300,3200,3700],3:[900,1400,3000,4300],4:[900,1400,2400,4600],5:[900,2200,3000,5300],6:[900,3000,3600,6000],7:[900,3800,4200,6700],8:[900,4600,4800,7400],9:[900,5400,5400,8100],10:[900,6200,6000,8800]},
+const fmt=n=>n.toLocaleString('th-TH');
+const ROUND=10;
+const D={
+  j:{
+    10:{adv:[600,600,600,600,600,600,600,600,600,600],kkult:[400,1000,1100,1400,1900,2400,2900,3400,3900,4400],tadv:[200,200,700,1000,1100,1200,1300,1400,1500,1600],day:[1000,700,400,300,300,300,300,300,300,300],tutor:[1200,1600,1900,2200,2600,3000,3400,3800,4200,4600]},
+    15:{adv:[700,700,700,700,700,700,700,700,700,700],kkult:[400,1100,1200,1400,2000,2600,3200,3800,4400,5000],tadv:[300,300,900,1400,1500,1600,1700,1800,1900,2000],day:[1400,1000,600,400,400,400,400,400,400,400],tutor:[1700,2300,2700,3000,3500,4000,4500,5000,5500,6000]},
+    20:{adv:[800,800,800,800,800,800,800,800,800,800],kkult:[400,1200,1300,1400,2100,2800,3500,4200,4900,5600],tadv:[400,400,1100,1800,1900,2000,2100,2200,2300,2400],day:[1800,1300,800,500,500,500,500,500,500,500],tutor:[2200,3000,3500,3800,4400,5000,5600,6200,6800,7400]},
+    25:{adv:[900,900,900,900,900,900,900,900,900,900],kkult:[400,1300,1400,1400,2200,3000,3800,4600,5400,6200],tadv:[500,500,1300,2200,2300,2400,2500,2600,2700,2800],day:[2200,1600,1000,600,600,600,600,600,600,600],tutor:[2700,3700,4300,4600,5300,6000,6700,7400,8100,8800]}
   },
-  senior: {
-    10:{1:[800,500,1200,1500],2:[800,1300,1600,1900],3:[800,1400,1200,2200],4:[800,1900,1200,2500],5:[800,2600,1500,2900],6:[800,3300,1800,3300],7:[800,4000,2100,3700],8:[800,4700,2400,4100],9:[800,5400,2700,4500],10:[800,6100,3000,4900]},
-    15:{1:[900,500,1700,2100],2:[900,1500,2400,2700],3:[900,1700,2100,3100],4:[900,2200,2000,3400],5:[900,3100,2500,3900],6:[900,4000,3000,4400],7:[900,4900,3500,4900],8:[900,5800,4000,5400],9:[900,6700,4500,5900],10:[900,7600,5000,6400]},
-    20:{1:[1000,500,2200,2700],2:[1000,1700,3200,3500],3:[1000,2000,3000,4000],4:[1000,2500,2800,4300],5:[1000,3600,3500,4900],6:[1000,4700,4200,5500],7:[1000,5800,4900,6100],8:[1000,6900,5600,6700],9:[1000,8000,6300,7300],10:[1000,9100,7000,7900]},
-    25:{1:[1100,500,2700,3300],2:[1100,1900,4000,4300],3:[1100,2300,3900,4900],4:[1100,2600,3600,5400],5:[1100,3900,4500,6100],6:[1100,5200,5400,6800],7:[1100,6500,6300,7500],8:[1100,7800,7200,8200],9:[1100,9100,8100,8900],10:[1100,10400,9000,9600]},
+  s:{
+    10:{adv:[800,800,800,800,800,800,800,800,800,800],kkult:[500,1300,1400,1900,2600,3300,4000,4700,5400,6100],tadv:[300,300,1000,1300,1400,1500,1600,1700,1800,1900],day:[1200,800,400,300,300,300,300,300,300,300],tutor:[1500,1900,2200,2500,2900,3300,3700,4100,4500,4900]},
+    15:{adv:[900,900,900,900,900,900,900,900,900,900],kkult:[500,1500,1700,2200,3100,4000,4900,5800,6700,7600],tadv:[400,300,1000,1400,1400,1400,1400,1400,1400,1400],day:[1700,1200,700,500,500,500,500,500,500,500],tutor:[2100,2700,3100,3400,3900,4400,4900,5400,5900,6400]},
+    20:{adv:[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000],kkult:[500,1700,2000,2500,3600,4700,5800,6900,8000,9100],tadv:[500,300,1000,1500,1400,1300,1200,1100,1000,900],day:[2200,1600,1000,700,700,700,700,700,700,700],tutor:[2700,3500,4000,4300,4900,5500,6100,6700,7300,7900]},
+    25:{adv:[1100,1100,1100,1100,1100,1100,1100,1100,1100,1100],kkult:[500,1900,2300,2600,3900,5200,6500,7800,9100,10400],tadv:[600,300,1000,1800,1600,1400,1200,1000,800,600],day:[2700,2000,1300,900,900,900,900,900,900,900],tutor:[3300,4300,4900,5400,6100,6800,7500,8200,8900,9600]}
   }
 };
-
-const THEMES = {
-  junior: { primary:"#2563eb", soft:"#eff6ff", border:"#bfdbfe", mid:"#1d4ed8", shadow:"#2563eb44", grad:"linear-gradient(135deg,#2563eb,#3b82f6)" },
-  senior: { primary:"#b45309", soft:"#fffbeb", border:"#fde68a", mid:"#92400e", shadow:"#d9770644", grad:"linear-gradient(135deg,#92400e,#d97706,#f59e0b)" },
+const TR={
+  j:[{pp:190,tot:190,tutor:120,kkult:70},{pp:150,tot:300,tutor:160,kkult:140},{pp:120,tot:360,tutor:190,kkult:170},{pp:100,tot:400,tutor:220,kkult:180},{pp:100,tot:500,tutor:260,kkult:240},{pp:100,tot:600,tutor:300,kkult:300},{pp:100,tot:700,tutor:340,kkult:360},{pp:100,tot:800,tutor:380,kkult:420},{pp:100,tot:900,tutor:420,kkult:480},{pp:100,tot:1000,tutor:460,kkult:540}],
+  s:[{pp:240,tot:240,tutor:150,kkult:90},{pp:190,tot:380,tutor:190,kkult:190},{pp:150,tot:450,tutor:220,kkult:230},{pp:130,tot:520,tutor:250,kkult:270},{pp:130,tot:650,tutor:290,kkult:360},{pp:130,tot:780,tutor:330,kkult:450},{pp:130,tot:910,tutor:370,kkult:540},{pp:130,tot:1040,tutor:410,kkult:630},{pp:130,tot:1170,tutor:450,kkult:720},{pp:130,tot:1300,tutor:490,kkult:810}]
 };
 
-const fmt = n => n.toLocaleString("th-TH");
-const fmtD = n => Number.isInteger(n) ? fmt(n) : n.toLocaleString("th-TH",{minimumFractionDigits:1,maximumFractionDigits:1});
+let mode='pkg',tier='j',pkg=10,ppl=1;
 
-let state = { tier:"junior", hrs:20, n:3, taught:0 };
+function c(){return tier==='j'?'#1a6fa8':'#8b5e00';}
+function l(){return tier==='j'?'#eef7ff':'#fef9ec';}
+function hc(){return tier==='j'?'hj':'hs';}
 
-function applyTheme(tier) {
-  const t = THEMES[tier];
-  const r = document.documentElement;
-  r.style.setProperty("--tier-primary", t.primary);
-  r.style.setProperty("--tier-soft", t.soft);
-  r.style.setProperty("--tier-border", t.border);
-  r.style.setProperty("--tier-mid", t.mid);
-  r.style.setProperty("--tier-shadow", t.shadow);
-  document.getElementById("header").style.background = t.grad;
+// งวด: 3, 8, 13, 18, 23
+function instLabel(i){ return 3 + i * 5; }
+
+function getInstAmounts(dayPerPerson, hrs){
+  const steps=hrs/5;
+  const base=Math.floor(dayPerPerson/steps/ROUND)*ROUND;
+  const last=dayPerPerson-base*(steps-1);
+  return Array.from({length:steps},(_,i)=>i===steps-1?last:base);
 }
 
-function setTier(v) {
-  state.tier = v; state.taught = 0;
-  ["junior","senior"].forEach(t => {
-    document.getElementById("btn-"+t).classList.toggle("active", t===v);
-  });
-  applyTheme(v);
-  buildHrs(); buildStudents(); render();
+function buildInst(dayPerPerson,n,hrs){
+  const amts=getInstAmounts(dayPerPerson,hrs);
+  return '[ '+amts.map((a,i)=>{
+    const total=a*n;
+    const pp=n>1?' (คนละ '+fmt(a)+')':'';
+    return 'ชั่วโมงที่ '+instLabel(i)+' จำนวน '+fmt(total)+' บาท'+pp;
+  }).join(' / ')+' ]';
 }
 
-function buildHrs() {
-  const row = document.getElementById("hrs-row");
-  row.innerHTML = "";
-  [10,15,20,25].forEach(h => {
-    const b = document.createElement("button");
-    b.className = "hrs-btn" + (state.hrs===h?" active":"");
-    b.textContent = h;
-    b.onclick = () => { state.hrs=h; state.taught=0; buildHrs(); buildHourGrid(); render(); };
-    row.appendChild(b);
-  });
-}
-
-function buildStudents() {
-  const row = document.getElementById("stu-row");
-  row.innerHTML = "";
-  for (let i=1;i<=10;i++) {
-    const b = document.createElement("button");
-    b.className = "stu-btn" + (state.n===i?" active":"");
-    b.textContent = i;
-    b.onclick = () => { state.n=i; buildStudents(); render(); };
-    row.appendChild(b);
+function tutorMsg(isPkg,d,n,hrs){
+  if(!isPkg){
+    const p=n>1?'คนละ '+fmt(d.pp)+' รวม '+fmt(d.tot)+' บาท':fmt(d.tot)+' บาท';
+    return 'ค่าสอนงานนี้ 1 ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p;
   }
+  const dayTotal=d.day*n;
+  const inst=buildInst(d.day,n,hrs);
+  const p=n>1?'คนละ '+fmt(d.day)+' รวม '+fmt(dayTotal)+' บาท':fmt(dayTotal)+' บาท';
+  return 'ค่าสอนงานนี้ '+hrs+' ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p+' โดยแบ่งจ่ายทุก ๆ 5 ชั่วโมง '+inst+' ส่วนอีก '+fmt(d.tadv)+' บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอน "ครั้งสุดท้าย" มานะครับ';
 }
 
-function buildHourGrid() {
-  const grid = document.getElementById("hour-grid");
-  grid.innerHTML = "";
-  const d = PRICING[state.tier][state.hrs][state.n];
-  const day = d[2], hrs = state.hrs;
-  const hrRate = day / hrs;
-
-  for (let t=0; t<=hrs; t++) {
-    const r = t===0 ? d[0]*state.n + day : Math.ceil(hrRate*(hrs-t)/state.n)*state.n;
-    const pct = Math.round(t/hrs*100);
-    const b = document.createElement("button");
-    b.className = "hour-btn" + (state.taught===t?" active":"");
-    b.innerHTML = `<span class="h-label">${t===0?"ก่อน":t+"ชม"}</span><span class="h-pct">${pct}%</span><span class="h-refund">฿${fmt(r)}</span>`;
-    b.onclick = () => { state.taught=t; buildHourGrid(); render(); };
-    grid.appendChild(b);
-  }
+function studentMsg(d,n,hrs){
+  const dayTotal=d.day*n;
+  const inst=buildInst(d.day,n,hrs);
+  const ppNote=n>1?' [คนละ '+fmt(d.day)+' บาท]':'';
+  return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง '+inst+' ได้กับพี่ติวเตอร์ครับ 🙏🏽';
 }
 
-function render() {
-  const { tier, hrs, n, taught } = state;
-  const d = PRICING[tier][hrs][n];
-  const dep = d[0]*n, comm = d[1], day = d[2];
-  const hrRate = day / hrs;
-  const remaining = hrs - taught;
-  const F = d[3];
-  const refund = taught===0 ? dep+day : Math.ceil(hrRate*remaining/n)*n;
-  const tutorPay = taught===0 ? 0 : Math.ceil(F/hrs*taught);
-  const perPerson = Math.round(refund/n);
-  const commDisplay = taught===0 ? 0 : comm;
+function doCopy(id,btnId){
+  const txt=document.getElementById(id).value,btn=document.getElementById(btnId);
+  const orig=btn.textContent,origBg=btn.style.background;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>flash(btn,orig,origBg));}
+  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);flash(btn,orig,origBg);}
+}
+function flash(btn,orig,origBg){
+  btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';
+  setTimeout(()=>{btn.textContent=orig;btn.style.background=origBg;},2000);
+}
+function rrow(l,s,v,h=''){
+  const cls=h==='tier'?hc():h==='dark'?'hd':'';
+  return `<div class="rrow"><div class="rl">${l}${s?`<small>${s}</small>`:''}</div><div class="rv ${cls}">${v}</div></div>`;
+}
 
-  // info strip
-  document.getElementById("info-dep").textContent = "฿"+fmt(dep);
-  document.getElementById("info-day").textContent = "฿"+fmt(day);
-  document.getElementById("info-T").textContent = "฿"+fmt(dep+day);
-  document.getElementById("info-comm").textContent = "฿"+fmt(comm);
+function render(){
+  const isJ=tier==='j',col=c(),i=ppl-1,n=ppl,tl=isJ?'KKULT JUNIOR':'KKULT SENIOR';
 
-  // rate note
-  document.getElementById("rate-note").textContent =
-    taught===0 ? "" : `฿${fmtD(hrRate)} × ${remaining} ชม. = ฿${fmt(refund)}`;
+  document.getElementById('mw').innerHTML=
+    [{v:'pkg',b:'📦 คอร์ส',s:'ซื้อคอร์ส'},{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'}].map(m=>
+      `<button class="btn-mode ${mode===m.v?'act':''}" onclick="setM('${m.v}')"><b>${m.b}</b><small>${m.s}</small></button>`).join('');
 
-  // results
-  document.getElementById("rc-refund").textContent = "฿"+fmt(refund);
-  document.getElementById("rc-refund-sub").textContent = taught===0 ? "คืนเต็มจำนวน" : `฿${fmtD(hrRate)} × ${remaining}ชม.`;
-  const perEl = document.getElementById("rc-per");
-  if (n>1) { perEl.style.display="block"; perEl.textContent=`คนละ ฿${fmt(perPerson)}`; }
-  else { perEl.style.display="none"; }
+  document.getElementById('tw').innerHTML=
+    [{v:'j',b:'Junior',s:'อนุบาล–ม.3'},{v:'s',b:'Senior',s:'ม.4–ม.6+ติวสอบ'}].map(t=>
+      `<button class="btn-tier t${t.v} ${tier===t.v?'act':''}" onclick="setT('${t.v}')"><b>${t.b}</b><small>${t.s}</small></button>`).join('');
 
-  const tutorHrRate = F / hrs;
-  document.getElementById("rc-tutor").textContent = "฿"+fmt(tutorPay);
-  document.getElementById("rc-tutor-sub").textContent = taught===0 ? "ยังไม่สอน" : `฿${fmtD(tutorHrRate)} × ${taught}ชม.`;
+  document.getElementById('ps').style.display=mode==='pkg'?'block':'none';
+  document.getElementById('pkw').innerHTML=[10,15,20,25].map(h=>
+    `<button class="pbtn" style="${pkg===h?`border-color:${col};background:${col};color:#fff`:''}" onclick="setP(${h})">${h} ชม.</button>`).join('');
 
-  document.getElementById("rc-comm").textContent = "฿"+fmt(commDisplay);
+  const pb=Array.from({length:10},(_,k)=>k+1).map(p=>
+    `<button class="pbtn" style="${ppl===p?`border-color:${col};background:${col};color:#fff`:''}" onclick="setPpl(${p})">${p}</button>`);
+  document.getElementById('pw1').innerHTML=pb.slice(0,5).join('');
+  document.getElementById('pw2').innerHTML=pb.slice(5).join('');
 
-  // copy message
-  const tierLabel = tier==="junior"?"Junior":"Senior";
-  const pct = Math.round(taught/hrs*100);
-  let msg = "";
-  if (taught===0) {
-    msg = `📋 สรุปการคืนค่าเรียน KKULT\n\nคอร์ส: ${tierLabel} ${hrs} ชั่วโมง (${n} คน)\nสถานะ: ยกเลิกก่อนเริ่มเรียน\n\n✅ ได้รับเงินคืนเต็มจำนวน\n   ฿${fmt(refund)} บาท${n>1?` (คนละ ฿${fmt(perPerson)})`:""}`;
+  let html='';
+  if(mode==='trial'){
+    const t=TR[tier][i];
+    const uPub=(D[tier][10].adv[i]+D[tier][10].day[i])*n,uExtra=uPub-t.tot;
+    html=`<div class="rc">
+      <div class="rh" style="background:${col}">
+        <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · ${n} คน</div></div>
+        <div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">${fmt(t.tot)}</div><div style="font-size:10px;opacity:.7">บาท</div></div>
+      </div>
+      <div style="background:#fff">
+        ${rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')}
+        ${rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')}
+        ${rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')}
+      </div>
+      <div class="summary">
+        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(t.tot)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(t.kkult)} บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">${fmt(t.tutor)} บาท</b></div>
+      </div>
+    </div>
+    <div style="background:${l()};border:1px solid ${isJ?'var(--jb)':'var(--sb)'};border-radius:10px;padding:12px 14px;font-size:11px;color:${col};line-height:1.9;margin-bottom:14px">
+      💡 <b>ถ้าต่อคอร์ส 10 ชม. (${fmt(uPub)} บาท)</b><br>หักค่าทดลอง ${fmt(t.tot)} บาท → จ่ายเพิ่มแค่ <b>${fmt(uExtra)} บาท</b> · เรียนรวม 10 ชม. ✓
+    </div>`;
   } else {
-    msg = `📋 สรุปการคืนค่าเรียน KKULT\n\nคอร์ส: ${tierLabel} ${hrs} ชั่วโมง (${n} คน)\nสถานะ: เรียนไปแล้ว ${taught} ชั่วโมง (${pct}%)\n\nวิธีคำนวณ:\n• ค่าเรียนส่วนที่เหลือ ÷ ชั่วโมงทั้งหมด = ฿${fmtD(hrRate)}/ชม.\n• ฿${fmtD(hrRate)} × ${remaining} ชั่วโมงที่เหลือ\n\n💰 ยอดคืนรวม ฿${fmt(refund)} บาท${n>1?`\n   (คนละ ฿${fmt(perPerson)} บาท)`:""}`;
+    const pd=D[tier][pkg];
+    const adv_t=pd.adv[i]*n,day_t=pd.day[i]*n;
+    const pub_pp=pd.adv[i]+pd.day[i],pub_t=pub_pp*n;
+    const tmsg=tutorMsg(true,{tadv:pd.tadv[i],day:pd.day[i],tutor:pd.tutor[i]},n,pkg);
+    const smsg=studentMsg({day:pd.day[i]},n,pkg);
+    html=`<div class="rc">
+      <div class="rh" style="background:${col}">
+        <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">${pkg} ชม. · ${n} คน</div></div>
+        <div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">${fmt(pub_t)}</div><div style="font-size:10px;opacity:.7">บาท · ${n} คน</div></div>
+      </div>
+      <div style="background:#fff">
+        ${rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')}
+        ${rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')}
+        ${rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')}
+        <div class="dv"></div>
+        ${rrow('จ่ายวันเรียน/คน','เริ่มชม.3 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')}
+        ${rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')}
+        <div class="dv"></div>
+        ${rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')}
+      </div>
+      <div class="summary">
+        <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(adv_t)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(pd.kkult[i])} บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">${fmt(pd.tadv[i])} บาท</b></div>
+        <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div>
+        <div class="tut">${tmsg.replace(/\n/g,'<br>')}</div>
+        <textarea id="cp-tut" style="position:absolute;left:-9999px">${tmsg}</textarea>
+        <div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:${col}" onclick="doCopy('cp-tut','cpb-tut')">📋 คัดลอกข้อความให้ติวเตอร์</button></div>
+        <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div>
+        <div class="stu">${smsg.replace(/\n/g,'<br>')}</div>
+        <textarea id="cp-stu" style="position:absolute;left:-9999px">${smsg}</textarea>
+        <div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy('cp-stu','cpb-stu')">📋 คัดลอกข้อความให้น้อง</button></div>
+      </div>
+    </div>`;
   }
-  msg += "\n\nรบกวนขอเลขบัญชี หรือ พร้อมเพย์ ด้วยนะครับ 🙏";
-  document.getElementById("copy-text").textContent = msg;
+  document.getElementById('result').innerHTML=html;
 }
 
-function copyMsg() {
-  const text = document.getElementById("copy-text").textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById("copy-btn");
-    btn.textContent = "✅ คัดลอกแล้ว";
-    btn.classList.add("copied");
-    setTimeout(() => { btn.textContent="📋 คัดลอก"; btn.classList.remove("copied"); }, 2000);
-  });
-}
-
-// init
-applyTheme("junior");
-buildHrs();
-buildStudents();
-buildHourGrid();
+function setM(m){mode=m;render();}
+function setT(t){tier=t;render();}
+function setP(p){pkg=p;render();}
+function setPpl(p){ppl=p;render();}
 render();
 </script>
 </body>
