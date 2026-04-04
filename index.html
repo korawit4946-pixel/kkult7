@@ -46,7 +46,9 @@ body{background:var(--bg);font-family:'Sarabun',sans-serif;padding:12px;color:va
 .sep-line{flex:1;height:1px;background:#c8b99a}
 .sep-txt{font-size:10px;color:var(--muted);white-space:nowrap}
 .tut{padding:10px 16px;background:#fff8f0;color:var(--text);line-height:1.9;font-size:12px}
-.cp-wrap{padding:8px 16px 14px;background:var(--bg)}
+.stu{padding:10px 16px;background:#f0fff4;color:var(--text);line-height:1.9;font-size:12px}
+.cp-wrap{padding:6px 16px;background:var(--bg)}
+.cp-wrap-last{padding:6px 16px 14px;background:var(--bg)}
 .cp-btn{width:100%;padding:12px;border-radius:9px;border:none;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer}
 </style>
 </head>
@@ -54,27 +56,22 @@ body{background:var(--bg);font-family:'Sarabun',sans-serif;padding:12px;color:va
 <div class="app">
   <div class="logo">KKULT</div>
   <div class="logo-sub">คำนวณราคา · Admin Tool</div>
-
   <div class="sec-label">โหมด</div>
   <div class="g2" id="mw"></div>
-
   <div class="sec-label">Tier</div>
   <div class="g2" id="tw"></div>
-
   <div id="ps">
     <div class="sec-label">ชั่วโมง</div>
     <div class="g4" id="pkw"></div>
   </div>
-
   <div class="sec-label">จำนวนคน</div>
   <div class="g5" id="pw1"></div>
   <div class="g5" id="pw2"></div>
-
   <div id="result"></div>
 </div>
-
 <script>
 const fmt=n=>n.toLocaleString('th-TH');
+const ROUND=10;
 const D={
   j:{
     10:{adv:[600,600,600,600,600,600,600,600,600,600],kkult:[400,1000,1100,1400,1900,2400,2900,3400,3900,4400],tadv:[200,200,700,1000,1100,1200,1300,1400,1500,1600],day:[1000,700,400,300,300,300,300,300,300,300],tutor:[1200,1600,1900,2200,2600,3000,3400,3800,4200,4600]},
@@ -100,43 +97,68 @@ function c(){return tier==='j'?'#1a6fa8':'#8b5e00';}
 function l(){return tier==='j'?'#eef7ff':'#fef9ec';}
 function hc(){return tier==='j'?'hj':'hs';}
 
+// label งวด: งวดแรก = ชม.1, งวดถัดไป = i*5
+function instLabel(i){ return i===0 ? 1 : i*5; }
+
+function getInstAmounts(dayPerPerson, hrs){
+  const steps=hrs/5;
+  const base=Math.floor(dayPerPerson/steps/ROUND)*ROUND;
+  const last=dayPerPerson-base*(steps-1);
+  return Array.from({length:steps},(_,i)=>i===steps-1?last:base);
+}
+
+function buildInst(dayPerPerson, n, hrs){
+  const amts=getInstAmounts(dayPerPerson,hrs);
+  return '[ '+amts.map((a,i)=>{
+    const total=a*n;
+    const pp=n>1?' (คนละ '+fmt(a)+')':'';
+    return 'ชั่วโมงที่ '+instLabel(i)+' จำนวน '+fmt(total)+' บาท'+pp;
+  }).join(' / ')+' ]';
+}
+
 function tutorMsg(isPkg,d,n,hrs){
   if(!isPkg){
-    const payPart = n>1 ? `คนละ ${fmt(d.pp)} รวม ${fmt(d.tot)} บาท` : `${fmt(d.tot)} บาท`;
-    return `ค่าสอนงานนี้ 1 ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart}`;
+    const p=n>1?'คนละ '+fmt(d.pp)+' รวม '+fmt(d.tot)+' บาท':fmt(d.tot)+' บาท';
+    return 'ค่าสอนงานนี้ 1 ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p;
   }
-  const payPart = n>1 ? `คนละ ${fmt(d.day)} รวม ${fmt(d.dayT)} บาท` : `${fmt(d.dayT)} บาท`;
-  return `ค่าสอนงานนี้ ${hrs} ชม. ${fmt(d.tutor)} บาท\nน้องจะจ่ายกับพี่ติวเตอร์ ${payPart} โดยแบ่งจ่ายทีละครึ่ง 2 ครั้ง [เริ่มการเรียนการสอน/กลางคอร์ส] ส่วนอีก ${fmt(d.tadv)} บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอน "ครั้งที่ 2" มานะครับ`;
+  const dayTotal=d.day*n;
+  const inst=buildInst(d.day,n,hrs);
+  const p=n>1?'คนละ '+fmt(d.day)+' รวม '+fmt(dayTotal)+' บาท':fmt(dayTotal)+' บาท';
+  return 'ค่าสอนงานนี้ '+hrs+' ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p+' โดยแบ่งจ่ายทุก ๆ 5 ชั่วโมง '+inst+' ส่วนอีก '+fmt(d.tadv)+' บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอน "ครั้งสุดท้าย" มานะครับ';
 }
 
-function doCopy(){
-  const txt=document.getElementById('cp-txt').value;
-  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(flashCopy);}
-  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);flashCopy();}
-}
-function flashCopy(){
-  const b=document.getElementById('cpb');
-  b.textContent='✓ คัดลอกแล้ว!';b.style.background='#1a5c3a';
-  setTimeout(()=>{b.textContent='📋 คัดลอกข้อความให้ติวเตอร์';b.style.background=c();},2000);
+function studentMsg(d,n,hrs){
+  const dayTotal=d.day*n;
+  const inst=buildInst(d.day,n,hrs);
+  const ppNote=n>1?' [คนละ '+fmt(d.day)+' บาท]':'';
+  return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง '+inst+' ได้กับพี่ติวเตอร์ครับ 🙏🏽';
 }
 
+function doCopy(id,btnId){
+  const txt=document.getElementById(id).value,btn=document.getElementById(btnId);
+  const orig=btn.textContent,origBg=btn.style.background;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>flash(btn,orig,origBg));}
+  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);flash(btn,orig,origBg);}
+}
+function flash(btn,orig,origBg){
+  btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';
+  setTimeout(()=>{btn.textContent=orig;btn.style.background=origBg;},2000);
+}
 function rrow(l,s,v,h=''){
   const cls=h==='tier'?hc():h==='dark'?'hd':'';
   return `<div class="rrow"><div class="rl">${l}${s?`<small>${s}</small>`:''}</div><div class="rv ${cls}">${v}</div></div>`;
 }
 
 function render(){
-  const isJ=tier==='j';
-  const col=c();
-  const i=ppl-1;
-  const n=ppl;
-  const tl=isJ?'KKULT JUNIOR':'KKULT SENIOR';
+  const isJ=tier==='j',col=c(),i=ppl-1,n=ppl,tl=isJ?'KKULT JUNIOR':'KKULT SENIOR';
 
-  document.getElementById('mw').innerHTML=[{v:'pkg',b:'📦 คอร์ส',s:'ซื้อคอร์ส'},{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'}].map(m=>
-    `<button class="btn-mode ${mode===m.v?'act':''}" onclick="setM('${m.v}')"><b>${m.b}</b><small>${m.s}</small></button>`).join('');
+  document.getElementById('mw').innerHTML=
+    [{v:'pkg',b:'📦 คอร์ส',s:'ซื้อคอร์ส'},{v:'trial',b:'🕐 ทดลองเรียน',s:'1 ชั่วโมง'}].map(m=>
+      `<button class="btn-mode ${mode===m.v?'act':''}" onclick="setM('${m.v}')"><b>${m.b}</b><small>${m.s}</small></button>`).join('');
 
-  document.getElementById('tw').innerHTML=[{v:'j',b:'Junior',s:'อนุบาล–ม.3'},{v:'s',b:'Senior',s:'ม.4–ม.6+ติวสอบ'}].map(t=>
-    `<button class="btn-tier t${t.v} ${tier===t.v?'act':''}" onclick="setT('${t.v}')"><b>${t.b}</b><small>${t.s}</small></button>`).join('');
+  document.getElementById('tw').innerHTML=
+    [{v:'j',b:'Junior',s:'อนุบาล–ม.3'},{v:'s',b:'Senior',s:'ม.4–ม.6+ติวสอบ'}].map(t=>
+      `<button class="btn-tier t${t.v} ${tier===t.v?'act':''}" onclick="setT('${t.v}')"><b>${t.b}</b><small>${t.s}</small></button>`).join('');
 
   document.getElementById('ps').style.display=mode==='pkg'?'block':'none';
   document.getElementById('pkw').innerHTML=[10,15,20,25].map(h=>
@@ -148,12 +170,9 @@ function render(){
   document.getElementById('pw2').innerHTML=pb.slice(5).join('');
 
   let html='';
-
   if(mode==='trial'){
     const t=TR[tier][i];
-    const uPub=(D[tier][10].adv[i]+D[tier][10].day[i])*n;
-    const uExtra=uPub-t.tot;
-    const msg=tutorMsg(false,t,n,1);
+    const uPub=(D[tier][10].adv[i]+D[tier][10].day[i])*n,uExtra=uPub-t.tot;
     html=`<div class="rc">
       <div class="rh" style="background:${col}">
         <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · ${n} คน</div></div>
@@ -175,11 +194,10 @@ function render(){
     </div>`;
   } else {
     const pd=D[tier][pkg];
-    const adv_t=pd.adv[i]*n;
-    const day_t=pd.day[i]*n;
-    const pub_pp=pd.adv[i]+pd.day[i];
-    const pub_t=pub_pp*n;
-    const msg=tutorMsg(true,{tadv:pd.tadv[i],day:pd.day[i],dayT:day_t,tutor:pd.tutor[i]},n,pkg);
+    const adv_t=pd.adv[i]*n,day_t=pd.day[i]*n;
+    const pub_pp=pd.adv[i]+pd.day[i],pub_t=pub_pp*n;
+    const tmsg=tutorMsg(true,{tadv:pd.tadv[i],day:pd.day[i],tutor:pd.tutor[i]},n,pkg);
+    const smsg=studentMsg({day:pd.day[i]},n,pkg);
     html=`<div class="rc">
       <div class="rh" style="background:${col}">
         <div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:'Kanit',sans-serif">${tl}</div><div style="font-weight:700;font-size:14px;margin-top:2px">${pkg} ชม. · ${n} คน</div></div>
@@ -194,7 +212,7 @@ function render(){
         ${rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')}
         ${rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')}
         <div class="dv"></div>
-        ${rrow('จ่ายวันเรียน/คน','',fmt(pd.day[i])+' บาท')}
+        ${rrow('จ่ายวันเรียน/คน','เริ่มชม.1 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')}
         ${rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')}
         <div class="dv"></div>
         ${rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')}
@@ -202,13 +220,16 @@ function render(){
       <div class="summary">
         <div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">${fmt(adv_t)} บาท</b> · KKULT หัก <b style="color:var(--text)">${fmt(pd.kkult[i])} บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">${fmt(pd.tadv[i])} บาท</b></div>
         <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div>
-        <div class="tut">${msg.replace(/\n/g,'<br>')}</div>
-        <textarea id="cp-txt" style="position:absolute;left:-9999px">${msg}</textarea>
-        <div class="cp-wrap"><button id="cpb" class="cp-btn" style="background:${col}" onclick="doCopy()">📋 คัดลอกข้อความให้ติวเตอร์</button></div>
+        <div class="tut">${tmsg.replace(/\n/g,'<br>')}</div>
+        <textarea id="cp-tut" style="position:absolute;left:-9999px">${tmsg}</textarea>
+        <div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:${col}" onclick="doCopy('cp-tut','cpb-tut')">📋 คัดลอกข้อความให้ติวเตอร์</button></div>
+        <div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div>
+        <div class="stu">${smsg.replace(/\n/g,'<br>')}</div>
+        <textarea id="cp-stu" style="position:absolute;left:-9999px">${smsg}</textarea>
+        <div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy('cp-stu','cpb-stu')">📋 คัดลอกข้อความให้น้อง</button></div>
       </div>
     </div>`;
   }
-
   document.getElementById('result').innerHTML=html;
 }
 
@@ -216,7 +237,6 @@ function setM(m){mode=m;render();}
 function setT(t){tier=t;render();}
 function setP(p){pkg=p;render();}
 function setPpl(p){ppl=p;render();}
-
 render();
 </script>
 </body>
