@@ -180,7 +180,7 @@ function render(){
       var advExtraPP=pd.adv[i]-t.pp;
       var advExtraTot=advExtraPP*n;
       var trialPP=n>1?' (คนละ '+fmt(t.pp)+' บาท)':'';
-      var stuMsg='💡 สนใจต่อคอร์ส '+h+' ชม. ราคา '+fmt(pubTot)+' บาท'+(n>1?' (คนละ '+fmt(pubPP)+' บาท)':'')+' \nหักค่าทดลองเรียน '+fmt(t.tot)+' บาท'+trialPP+' → จ่ายเพิ่มรวม '+fmt(extra)+' บาท (เรียนอีก '+(h-1)+' ชม.)\n📌 ชำระค่าเรียนล่วงหน้า '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+' บาท)':'')+' \n📌เลขที่บัญชีกสิกร : 1811482591 กรวิชญ์ ชื่นวัฒนา\n💸 สามารถชำระเพิ่มจากค่าทดลอง '+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+' บาท)':'')+' เพื่อยืนยันคอร์สได้เลยครับ 🙏\n*โปรดแจ้งสลิปด้วยนะครับ*';
+      var stuMsg='💡 สนใจต่อคอร์ส '+h+' ชม. ราคา '+fmt(pubTot)+' บาท'+(n>1?' (คนละ '+fmt(pubPP)+' บาท)':'')+' \nหักค่าทดลองเรียน '+fmt(t.tot)+' บาท'+trialPP+' → จ่ายเพิ่มรวม '+fmt(extra)+' บาท (เรียนอีก '+(h-1)+' ชม.)\n📌 ค่าเรียนล่วงหน้าในคอร์ส คือ '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+' บาท)':'')+' \n📌 เลขที่บัญชีกสิกร : 1811482591 กรวิชญ์ ชื่นวัฒนา\n💸 สามารถชำระเพิ่มจากค่าทดลอง '+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+' บาท)':'')+' เพื่อยืนยันคอร์สได้เลยครับ 🙏\n*โปรดแจ้งสลิปด้วยนะครับ*';
       var cpId='cp-trial-'+h;
       var cbId='cpb-trial-'+h;
       courseBoxes+='<div style="background:'+l()+';border:1px solid '+(isJ?'var(--jb)':'var(--sb)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">'
