@@ -132,7 +132,7 @@ function studentMsg(d,n,hrs){
   const dayTotal=d.day*n;
   const inst=buildInst(d.day,n,hrs);
   const ppNote=n>1?' [คนละ '+fmt(d.day)+' บาท]':'';
-  return '💵 ได้รับยอดแล้วครับ 💵\nทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ ... แล้วจะแจ้งทางช่องทางนี้นะครับ 🥰\n📌 ค่าเรียนส่วนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถชำระกับพี่ติวเตอร์ได้เลย โดยแบ่งชำระทุก ๆ 5 ชั่วโมง ดังนี้ '+inst+' ครับ 🙏🏽';
+  return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง ดังนี้ '+inst+' ได้กับพี่ติวเตอร์ครับ 🙏🏽';
 }
 
 function doCopy(id,btnId){
@@ -171,8 +171,29 @@ function render(){
   let html='';
   if(mode==='trial'){
     const t=TR[tier][i];
-    const uPub=(D[tier][10].adv[i]+D[tier][10].day[i])*n,uExtra=uPub-t.tot;
-    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(t.tot)+'</div><div style="font-size:10px;opacity:.7">บาท</div></div></div><div style="background:#fff">'+rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')+rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')+rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(t.tot)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(t.kkult)+' บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">'+fmt(t.tutor)+' บาท</b></div></div></div><div style="background:'+l()+';border:1px solid '+(isJ?'var(--jb)':'var(--sb)')+';border-radius:10px;padding:12px 14px;font-size:11px;color:'+col+';line-height:1.9;margin-bottom:14px">💡 <b>ถ้าต่อคอร์ส 10 ชม. ('+fmt(uPub)+' บาท)</b><br>หักค่าทดลอง '+fmt(t.tot)+' บาท → จ่ายเพิ่มแค่ <b>'+fmt(uExtra)+' บาท</b> · เรียนรวม 10 ชม. ✓</div>';
+    var courseBoxes='';
+    [10,15,20,25].forEach(function(h){
+      var pd=D[tier][h];
+      var pubPP=pd.adv[i]+pd.day[i];
+      var pubTot=pubPP*n;
+      var extra=pubTot-t.tot;
+      var advExtraPP=pd.adv[i]-t.pp;
+      var advExtraTot=advExtraPP*n;
+      var trialPP=n>1?' (คนละ '+fmt(t.pp)+' บาท)':'';
+      var stuMsg='💡 สนใจต่อคอร์ส '+h+' ชม. ราคา '+fmt(pubTot)+' บาท'+(n>1?' (คนละ '+fmt(pubPP)+' บาท)':'')+' \nหักค่าทดลองเรียน '+fmt(t.tot)+' บาท'+trialPP+' → จ่ายเพิ่มรวม '+fmt(extra)+' บาท (เรียนอีก '+(h-1)+' ชม.)\n📌 ชำระค่าเรียนล่วงหน้า '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+' บาท)':'')+' \n📌เลขที่บัญชีกสิกร : 1811482591 กรวิชญ์ ชื่นวัฒนา\n💸 สามารถชำระเพิ่มจากค่าทดลอง '+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+' บาท)':'')+' เพื่อยืนยันคอร์สได้เลยครับ 🙏\n*โปรดแจ้งสลิปด้วยนะครับ*';
+      var cpId='cp-trial-'+h;
+      var cbId='cpb-trial-'+h;
+      courseBoxes+='<div style="background:'+l()+';border:1px solid '+(isJ?'var(--jb)':'var(--sb)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">'
+        +'<div style="padding:10px 14px 6px;font-size:11px;color:'+col+';line-height:2">'
+        +'💡 <b>ต่อคอร์ส '+h+' ชม. ('+fmt(pubTot)+' บาท'+(n>1?' · คนละ '+fmt(pubPP):'')+')</b><br>'
+        +'หักค่าทดลอง '+fmt(t.tot)+' บาท → จ่ายเพิ่มแค่ <b>'+fmt(extra)+' บาท</b> · เรียนรวม '+h+' ชม. ✓<br>'
+        +'<span style="font-size:10px;opacity:.85">📌 ค่าล่วงหน้า '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+')':'')+' · จ่ายเพิ่มจากค่าทดลอง <b>'+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+')':'')+'</b></span>'
+        +'</div>'
+        +'<textarea id="'+cpId+'" style="position:absolute;left:-9999px">'+stuMsg+'</textarea>'
+        +'<div style="padding:0 10px 10px"><button class="trial-cp-btn" data-cp="'+cpId+'" data-col="'+col+'" style="width:100%;padding:9px;border-radius:7px;border:none;background:'+col+';color:#fff;font-family:Kanit,sans-serif;font-size:12px;font-weight:700;cursor:pointer">📋 คัดลอกข้อความให้น้อง</button></div>'
+        +'</div>';
+    });
+    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(t.tot)+'</div><div style="font-size:10px;opacity:.7">บาท</div></div></div><div style="background:#fff">'+rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')+rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')+rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(t.tot)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(t.kkult)+' บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">'+fmt(t.tutor)+' บาท</b></div></div></div>'+courseBoxes;
   } else {
     const pd=D[tier][pkg];
     const adv_t=pd.adv[i]*n,day_t=pd.day[i]*n;
@@ -182,6 +203,17 @@ function render(){
     html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">'+pkg+' ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(pub_t)+'</div><div style="font-size:10px;opacity:.7">บาท · '+n+' คน</div></div></div><div style="background:#fff">'+rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')+'<div class="dv"></div>'+rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')+rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')+rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')+'<div class="dv"></div>'+rrow('จ่ายวันเรียน/คน','เริ่มชม.3 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')+rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')+'<div class="dv"></div>'+rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(adv_t)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(pd.kkult[i])+' บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">'+fmt(pd.tadv[i])+' บาท</b></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div><div class="tut">'+tmsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-tut" style="position:absolute;left:-9999px">'+tmsg+'</textarea><div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:'+col+'" onclick="doCopy(\'cp-tut\',\'cpb-tut\')">📋 คัดลอกข้อความให้ติวเตอร์</button></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div><div class="stu">'+smsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-stu" style="position:absolute;left:-9999px">'+smsg+'</textarea><div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy(\'cp-stu\',\'cpb-stu\')">📋 คัดลอกข้อความให้น้อง</button></div></div></div>';
   }
   document.getElementById('result').innerHTML=html;
+  // bind trial copy buttons via delegation
+  document.querySelectorAll('.trial-cp-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var cpId=btn.getAttribute('data-cp');
+      var col2=btn.getAttribute('data-col');
+      var txt=document.getElementById(cpId).value;
+      var orig=btn.textContent;
+      if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';setTimeout(function(){btn.textContent=orig;btn.style.background=col2;},2000);});}
+      else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';setTimeout(function(){btn.textContent=orig;btn.style.background=col2;},2000);}
+    });
+  });
 }
 
 function setM(m){mode=m;render();}
