@@ -97,7 +97,6 @@ function c(){return tier==='j'?'#1a6fa8':'#8b5e00';}
 function l(){return tier==='j'?'#eef7ff':'#fef9ec';}
 function hc(){return tier==='j'?'hj':'hs';}
 
-// [1] งวด: 3, 8, 13, 18, 23
 function instLabel(i){ return 3 + i * 5; }
 
 function getInstAmounts(dayPerPerson,hrs){
@@ -107,32 +106,36 @@ function getInstAmounts(dayPerPerson,hrs){
   return Array.from({length:steps},(_,i)=>i===steps-1?last:base);
 }
 
-function buildInst(dayPerPerson,n,hrs){
-  const amts=getInstAmounts(dayPerPerson,hrs);
-  return '[ '+amts.map((a,i)=>{
-    const total=a*n;
-    const pp=n>1?' (คนละ '+fmt(a)+')':'';
-    return 'ชั่วโมงที่ '+instLabel(i)+' จำนวน '+fmt(total)+' บาท'+pp;
-  }).join(' / ')+' ]';
-}
-
-// [2] เพิ่ม "ดังนี้" ก่อน bracket ทั้งสองฟังก์ชัน
 function tutorMsg(isPkg,d,n,hrs){
   if(!isPkg){
     const p=n>1?'คนละ '+fmt(d.pp)+' รวม '+fmt(d.tot)+' บาท':fmt(d.tot)+' บาท';
     return 'ค่าสอนงานนี้ 1 ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p;
   }
   const dayTotal=d.day*n;
-  const inst=buildInst(d.day,n,hrs);
-  const p=n>1?'คนละ '+fmt(d.day)+' รวม '+fmt(dayTotal)+' บาท':fmt(dayTotal)+' บาท';
-  return 'ค่าสอนงานนี้ '+hrs+' ชม. '+fmt(d.tutor)+' บาท\nน้องจะจ่ายกับพี่ติวเตอร์ '+p+' โดยแบ่งจ่ายทุก ๆ 5 ชั่วโมง ดังนี้ '+inst+' ส่วนอีก '+fmt(d.tadv)+' บาท แอดมินจะจ่ายให้หลังจากส่งรูปการเรียนการสอน "ครั้งสุดท้าย" มานะครับ';
+  const amts=getInstAmounts(d.day,hrs);
+  let msg='💰 ค่าสอนงานนี้ '+hrs+' ชม. รวม '+fmt(d.tutor)+' บาท\n';
+  msg+='น้องจ่ายพี่โดยตรง '+fmt(dayTotal)+' บาท'+(n>1?' (คนละ '+fmt(d.day)+' บาท)':'')+' แบ่งเป็น\n';
+  amts.forEach(function(a,idx){
+    const tot=a*n;
+    msg+='- ชั่วโมงที่ '+instLabel(idx)+' \u2192 '+fmt(tot)+' บาท'+(n>1?' (คนละ '+fmt(a)+' บาท)':'')+'\n';
+  });
+  msg+='\nส่วนอีก '+fmt(d.tadv)+' บาท แอดมินจะโอนให้หลังจากติวเตอร์ส่ง 2 อย่างนี้ครบ ในการสอนครั้งสุดท้ายเสร็จ (ปิดคอร์ส) นะครับ\n';
+  msg+='✅ 1. รูปการเรียนการสอน (เห็นบรรยากาศการเรียนชัดเจน แอดมินจะนำไปโปรโมท)\n';
+  msg+='✅ 2. แคปแชท feedback จากน้อง (เช่น ถามน้องว่า "เรียนกับพี่เป็นยังไงบ้าง เข้าใจขึ้นไหม" ครับ 😊)\n\n';
+  msg+='📌 หลังส่งแล้ว รบกวนแจ้ง \'รหัสงาน\' และ \'พร้อมเพย์หรือเลขบัญชี\' พร้อมชื่อเจ้าของบัญชี ทุกครั้ง ด้วยนะครับ';
+  return msg;
 }
 
 function studentMsg(d,n,hrs){
   const dayTotal=d.day*n;
-  const inst=buildInst(d.day,n,hrs);
+  const amts=getInstAmounts(d.day,hrs);
+  const instLines=amts.map(function(a,idx){
+    const tot=a*n;
+    const ppNote=n>1?' (คนละ '+fmt(a)+')':'';
+    return 'ชั่วโมงที่ '+instLabel(idx)+' จำนวน '+fmt(tot)+' บาท'+ppNote;
+  }).join(' / ');
   const ppNote=n>1?' [คนละ '+fmt(d.day)+' บาท]':'';
-  return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง ดังนี้ '+inst+' ได้กับพี่ติวเตอร์ครับ 🙏🏽';
+  return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง ดังนี้ [ '+instLines+' ] ได้กับพี่ติวเตอร์ครับ 🙏🏽';
 }
 
 function doCopy(id,btnId){
@@ -180,9 +183,15 @@ function render(){
       var advExtraPP=pd.adv[i]-t.pp;
       var advExtraTot=advExtraPP*n;
       var trialPP=n>1?' (คนละ '+fmt(t.pp)+' บาท)':'';
-      var stuMsg='💡 สนใจต่อคอร์ส '+h+' ชม. ราคา '+fmt(pubTot)+' บาท'+(n>1?' (คนละ '+fmt(pubPP)+' บาท)':'')+' \nหักค่าทดลองเรียน '+fmt(t.tot)+' บาท'+trialPP+' → จ่ายเพิ่มรวม '+fmt(extra)+' บาท (เรียนอีก '+(h-1)+' ชม.)\n📌 ค่าเรียนล่วงหน้าในคอร์ส คือ '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+' บาท)':'')+' \n📌 เลขที่บัญชีกสิกร : 1811482591 กรวิชญ์ ชื่นวัฒนา\n💸 สามารถชำระเพิ่มจากค่าทดลอง '+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+' บาท)':'')+' เพื่อยืนยันคอร์สได้เลยครับ 🙏\n*โปรดแจ้งสลิปด้วยนะครับ*';
+      var dayTot=pd.day[i]*n;
+      var stuMsg='💡 สนใจต่อคอร์ส '+h+' ชม. ราคา '+fmt(pubTot)+' บาท'+(n>1?' (คนละ '+fmt(pubPP)+' บาท)':'')+'\n'
+        +'(หักค่าทดลองเรียน '+fmt(t.tot)+' บาท'+trialPP+' แล้ว เหลือจ่ายอีก '+fmt(extra)+' บาท)\n'
+        +'แบ่งจ่ายเป็น 2 ส่วนครับ\n'
+        +'1️⃣ โอนให้ KKULT ตอนนี้เลย → '+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+' บาท)':'')+' (เพื่อยืนยันคอร์ส)\n'
+        +'🏦 กสิกร 1811482591 · กรวิชญ์ ชื่นวัฒนา\n'
+        +'โปรดแจ้งสลิปด้วยนะครับ 🙏\n'
+        +'2️⃣ จ่ายกับพี่ติวเตอร์โดยตรง → '+fmt(dayTot)+' บาท'+(n>1?' (คนละ '+fmt(pd.day[i])+' บาท)':'')+' 💡';
       var cpId='cp-trial-'+h;
-      var cbId='cpb-trial-'+h;
       courseBoxes+='<div style="background:'+l()+';border:1px solid '+(isJ?'var(--jb)':'var(--sb)')+';border-radius:10px;margin-bottom:8px;overflow:hidden">'
         +'<div style="padding:10px 14px 6px;font-size:11px;color:'+col+';line-height:2">'
         +'💡 <b>ต่อคอร์ส '+h+' ชม. ('+fmt(pubTot)+' บาท'+(n>1?' · คนละ '+fmt(pubPP):'')+')</b><br>'
@@ -203,7 +212,6 @@ function render(){
     html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">'+pkg+' ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(pub_t)+'</div><div style="font-size:10px;opacity:.7">บาท · '+n+' คน</div></div></div><div style="background:#fff">'+rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')+'<div class="dv"></div>'+rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')+rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')+rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')+'<div class="dv"></div>'+rrow('จ่ายวันเรียน/คน','เริ่มชม.3 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')+rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')+'<div class="dv"></div>'+rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(adv_t)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(pd.kkult[i])+' บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">'+fmt(pd.tadv[i])+' บาท</b></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div><div class="tut">'+tmsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-tut" style="position:absolute;left:-9999px">'+tmsg+'</textarea><div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:'+col+'" onclick="doCopy(\'cp-tut\',\'cpb-tut\')">📋 คัดลอกข้อความให้ติวเตอร์</button></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div><div class="stu">'+smsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-stu" style="position:absolute;left:-9999px">'+smsg+'</textarea><div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy(\'cp-stu\',\'cpb-stu\')">📋 คัดลอกข้อความให้น้อง</button></div></div></div>';
   }
   document.getElementById('result').innerHTML=html;
-  // bind trial copy buttons via delegation
   document.querySelectorAll('.trial-cp-btn').forEach(function(btn){
     btn.addEventListener('click',function(){
       var cpId=btn.getAttribute('data-cp');
