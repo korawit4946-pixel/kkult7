@@ -31,16 +31,15 @@
             display: flex; flex-direction: column;
         }
 
-        /* Video & Canvas */
+        /* เพิ่ม muted ใน video ผ่าน JS แล้ว แต่ใส่ไว้ใน CSS กันเหนียว */
         #webcam { display: none; }
         #output-canvas {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%; object-fit: cover;
-            transform: scaleX(-1); /* Mirror */
+            transform: scaleX(-1);
             z-index: 1;
         }
 
-        /* UI Overlays */
         #ui-layer {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -49,7 +48,6 @@
             justify-content: space-between;
         }
 
-        /* Top Bar */
         .top-bar {
             display: flex; justify-content: center; align-items: center;
             padding: 20px; text-align: center;
@@ -70,7 +68,6 @@
         .timer { font-size: 3rem; font-weight: 700; color: var(--gold); text-shadow: 2px 2px 4px #000; position: absolute; right: 40px; top: 20px;}
         .level-text { font-size: 1.5rem; font-weight: 600; color: var(--gold); position: absolute; left: 40px; top: 20px; text-shadow: 1px 1px 2px #000;}
 
-        /* Players Area */
         .players-area {
             display: flex; flex: 1; width: 100%;
         }
@@ -88,7 +85,6 @@
         .feedback { font-size: 3rem; font-weight: 700; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); text-shadow: 2px 2px 10px #000; display: none; }
         .anti-cheat { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; font-size: 1.5rem; display: none;}
 
-        /* Bottom Guide */
         .bottom-guide {
             background-color: var(--terracotta);
             display: flex; justify-content: space-around;
@@ -100,7 +96,6 @@
             box-shadow: 0 4px 0 rgba(0,0,0,0.2);
         }
 
-        /* Menus & Overlays */
         .overlay-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--cream); z-index: 50;
@@ -129,7 +124,7 @@
 <body>
 
 <div id="game-container">
-    <video id="webcam" autoplay playsinline></video>
+    <video id="webcam" autoplay playsinline muted></video>
     <canvas id="output-canvas"></canvas>
 
     <div id="ui-layer" style="display: none;">
@@ -193,11 +188,8 @@ import {
     FilesetResolver,
     PoseLandmarker,
     HandLandmarker
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js";
+} from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.3";
 
-/**
- * AUDIO SYNTHESIS ENGINE (No external files needed)
- */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playTone(freq, type, duration, vol=0.1) {
     if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -217,9 +209,6 @@ const sfx = {
     win: () => { [523, 659, 783, 1046].forEach((f,i) => setTimeout(()=>playTone(f, 'square', 0.3, 0.1), i*150)); }
 };
 
-/**
- * QUESTION DATABASE (Sample logic for 300+ possibilities)
- */
 const vocab = {
     uncountable: ['Water', 'Information', 'Money', 'Rice', 'Knowledge', 'Sugar', 'Music', 'Love', 'News', 'Furniture'],
     countable: ['Apple', 'Book', 'Car', 'Desk', 'Dog', 'Chair', 'Cup', 'Pen', 'House', 'Tree'],
@@ -232,18 +221,16 @@ function generateQuestions(count) {
     for(let i=0; i<count; i++) {
         const type = Math.floor(Math.random() * 4);
         let q, ans, c1, c2, c3, c4;
-        
-        // Pick random items
         const getRnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
         
-        if(type === 0) { // Uncountable vs Countable (A or B)
+        if(type === 0) {
             let isUnc = Math.random() > 0.5;
             q = `Which word is ${isUnc ? 'Uncountable' : 'Countable'}?`;
             let u = getRnd(vocab.uncountable); let c = getRnd(vocab.countable);
             if(Math.random() > 0.5) { c1 = `A. ${u}`; c2 = `B. ${c}`; ans = isUnc ? 'A' : 'B'; } 
             else { c1 = `A. ${c}`; c2 = `B. ${u}`; ans = isUnc ? 'B' : 'A'; }
             qs.push({ q, choices: `${c1} &nbsp;&nbsp;&nbsp; ${c2}`, ans });
-        } else if (type === 1) { // Plural vs Singular (A or B)
+        } else if (type === 1) {
             let isPlu = Math.random() > 0.5;
             q = `Which word is ${isPlu ? 'Plural' : 'Singular'}?`;
             let idx = Math.floor(Math.random() * vocab.singular.length);
@@ -251,7 +238,7 @@ function generateQuestions(count) {
             if(Math.random() > 0.5) { c1 = `A. ${s}`; c2 = `B. ${p}`; ans = isPlu ? 'B' : 'A'; } 
             else { c1 = `A. ${p}`; c2 = `B. ${s}`; ans = isPlu ? 'A' : 'B'; }
             qs.push({ q, choices: `${c1} &nbsp;&nbsp;&nbsp; ${c2}`, ans });
-        } else if (type === 2) { // 4 Choices (C or D involved)
+        } else if (type === 2) {
             q = "Which word is an Uncountable Noun?";
             let u = getRnd(vocab.uncountable);
             let cArr = [...vocab.countable].sort(()=>0.5 - Math.random()).slice(0,3);
@@ -271,29 +258,25 @@ function generateQuestions(count) {
     }
     return qs;
 }
-const questions = generateQuestions(20); // Generate 20 questions for the game
+const questions = generateQuestions(20);
 
-/**
- * AI & GAME LOGIC
- */
 const video = document.getElementById('webcam');
 const canvas = document.getElementById('output-canvas');
 const ctx = canvas.getContext('2d');
 
 let poseLandmarker, handLandmarker;
 let isRunning = false;
-let gameState = 'MENU'; // MENU, COUNTDOWN, PLAYING, RESULT
+let gameState = 'MENU';
 let currentQIndex = 0;
 let timeRemaining = 10;
 let timerInterval;
 let level = 1;
 
 const pData = {
-    1: { score: 0, hist: [], answer: null, sideX: [0.5, 1] }, // Mirror: left screen is x > 0.5
-    2: { score: 0, hist: [], answer: null, sideX: [0, 0.5] }  // right screen is x < 0.5
+    1: { score: 0, hist: [], answer: null, sideX: [0.5, 1] },
+    2: { score: 0, hist: [], answer: null, sideX: [0, 0.5] }
 };
 
-// Math Helpers
 function calcAngle(a, b, c) {
     if(!a || !b || !c) return 0;
     const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
@@ -302,7 +285,6 @@ function calcAngle(a, b, c) {
     return angle;
 }
 
-// Multi-frame Validator
 const CONFIDENCE_FRAMES = 15;
 function getValidatedPose(playerId, pose) {
     let hist = pData[playerId].hist;
@@ -314,10 +296,10 @@ function getValidatedPose(playerId, pose) {
     return null;
 }
 
-// Initialize MediaPipe
 async function initAI() {
     try {
-        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");
+        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+        
         poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
             baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task" },
             runningMode: "VIDEO", numPoses: 2
@@ -327,30 +309,41 @@ async function initAI() {
             runningMode: "VIDEO", numHands: 2
         });
         
-        // Start Camera
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: "user" } });
         video.srcObject = stream;
-        video.addEventListener("loadeddata", () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+        
+        // บังคับให้ Safari รู้จักความกว้างและสั่ง Play
+        video.onloadedmetadata = () => {
+            video.play();
+            // ตั้งค่าขนาดเริ่มต้นกันเหนียวไว้ก่อน
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('start-btn').style.display = 'inline-block';
             detectFrame();
-        });
+        };
+
     } catch (error) {
         console.error("AI Initialization Error:", error);
-        document.getElementById('loading').innerText = "Error loading camera or AI models. Please check permissions.";
+        document.getElementById('loading').innerText = "Error loading camera. Please ensure camera is allowed.";
         document.getElementById('loading').style.color = "red";
     }
 }
 
-// Core Detection Loop
 async function detectFrame() {
     if(!video.paused) {
+        // อัปเดตขนาดให้แม่นยำที่สุดตามวิดีโอ
+        if(video.videoWidth > 0 && canvas.width !== video.videoWidth) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
         ctx.scale(-1, 1);
         ctx.translate(-canvas.width, 0);
+        
+        // วาดภาพจากกล้องลงบน Canvas
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         ctx.restore();
 
@@ -362,7 +355,6 @@ async function detectFrame() {
 
         if (poseResult.landmarks) {
             for (const marks of poseResult.landmarks) {
-                // Determine Player based on X position (Mirrored)
                 const hipX = marks[24].x;
                 let playerId = (hipX > 0.5) ? 1 : 2; 
                 
@@ -377,7 +369,6 @@ async function detectFrame() {
             }
         }
 
-        // Anti-Cheat (Visibility Check)
         if(gameState === 'PLAYING') {
             document.getElementById('p1-cheat').style.display = p1Detected ? 'none' : 'block';
             document.getElementById('p2-cheat').style.display = p2Detected ? 'none' : 'block';
@@ -391,7 +382,6 @@ function drawSkeleton(landmarks) {
     ctx.scale(-1, 1); ctx.translate(-canvas.width, 0);
     ctx.fillStyle = 'white'; ctx.strokeStyle = '#D4A017'; ctx.lineWidth = 4;
     
-    // Draw simple connections
     const connections = [[11,12], [11,13], [13,15], [12,14], [14,16], [11,23], [12,24], [23,24], [23,25], [24,26], [25,27], [26,28]];
     connections.forEach(([a,b]) => {
         if(landmarks[a].visibility > 0.6 && landmarks[b].visibility > 0.6) {
@@ -415,36 +405,30 @@ function drawSkeleton(landmarks) {
 function analyzePose(pose, hands, playerId) {
     let detectedRaw = null;
     
-    const headY = pose[0].y; // Nose
+    const headY = pose[0].y;
     const lWrist = pose[15]; const rWrist = pose[16];
     const lHip = pose[23]; const lKnee = pose[25]; const lAnkle = pose[27];
     
-    // Pose D: Both hands up
     if (lWrist.y < headY && rWrist.y < headY) {
         detectedRaw = 'D';
     } 
-    // Pose C: Left hand up (Note: mirrored, MediaPipe 15 is actual Left)
     else if (lWrist.y < headY && rWrist.y > headY) {
         detectedRaw = 'C';
     }
-    // Pose A: Left Knee Angle > 70 deg (Lift left leg)
     else if (lHip.visibility > 0.8 && lKnee.visibility > 0.8 && lAnkle.visibility > 0.8) {
         const angle = calcAngle(lHip, lKnee, lAnkle);
-        if (angle > 70 && angle < 140 && lAnkle.y < pose[28].y - 0.05) { // Ankle higher than right ankle
+        if (angle > 70 && angle < 140 && lAnkle.y < pose[28].y - 0.05) { 
             detectedRaw = 'A';
         }
     }
     
-    // Pose B: Peace Sign (HandLandmarker Check)
     if(!detectedRaw && hands && hands.landmarks) {
         for (let i = 0; i < hands.landmarks.length; i++) {
             const h = hands.landmarks[i];
             const isRightHand = hands.handednesses[i][0].categoryName === "Right";
-            // Check if this hand belongs to the correct player screen side
             let handX = h[0].x;
             if( (playerId === 1 && handX > 0.5) || (playerId === 2 && handX <= 0.5) ) {
                 if(isRightHand) {
-                    // Simple Peace Sign Check: Index & Middle up, Ring & Pinky down
                     if (h[8].y < h[6].y && h[12].y < h[10].y && h[16].y > h[14].y && h[20].y > h[18].y) {
                         detectedRaw = 'B';
                     }
@@ -453,12 +437,10 @@ function analyzePose(pose, hands, playerId) {
         }
     }
 
-    // Validate 15 frames
     let finalPose = getValidatedPose(playerId, detectedRaw);
     if(finalPose) submitAnswer(playerId, finalPose);
 }
 
-// Game Flow
 function startGame() {
     audioCtx.resume();
     document.getElementById('start-screen').style.display = 'none';
@@ -472,9 +454,8 @@ function startGame() {
 function nextQuestion() {
     if(currentQIndex >= 20) { endGame(); return; }
     
-    // Gamification Level Logic
     level = Math.floor(currentQIndex / 4) + 1;
-    let maxTime = level === 5 ? 5 : 10; // Level 5 Lightning Round
+    let maxTime = level === 5 ? 5 : 10;
     
     document.getElementById('level-display').innerText = `Level: ${level} ${level===5?'(⚡Lightning)':' '}`;
     
@@ -513,7 +494,6 @@ function startTimer(duration) {
         timeRemaining--;
         document.getElementById('timer-display').innerText = timeRemaining;
         
-        // Both answered or time up
         if(timeRemaining <= 0 || (pData[1].answer && pData[2].answer)) {
             clearInterval(timerInterval);
             evaluateAnswers();
@@ -522,10 +502,9 @@ function startTimer(duration) {
 }
 
 function submitAnswer(playerId, ans) {
-    if(pData[playerId].answer) return; // Already answered
+    if(pData[playerId].answer) return;
     pData[playerId].answer = { val: ans, time: timeRemaining };
     
-    // UI indicator that player locked in
     const fb = document.getElementById(`p${playerId}-feedback`);
     fb.innerText = `🔒 Locked: ${ans}`;
     fb.style.color = 'var(--dark)';
@@ -552,10 +531,9 @@ function evaluateAnswers() {
     showResultUI(1, p1Correct, p1Ans);
     showResultUI(2, p2Correct, p2Ans);
 
-    // Speed Bonus
     if(p1Correct && p2Correct) {
-        if(p1Ans.time > p2Ans.time) pData[1].score += 5; // P1 faster
-        else if (p2Ans.time > p1Ans.time) pData[2].score += 5; // P2 faster
+        if(p1Ans.time > p2Ans.time) pData[1].score += 5;
+        else if (p2Ans.time > p1Ans.time) pData[2].score += 5;
     }
 
     if(p1Correct) pData[1].score += 10;
@@ -574,7 +552,6 @@ function showResultUI(playerId, isCorrect, ansObj) {
         fb.innerText = "⏳ Time Out!"; fb.style.color = 'var(--danger)';
     } else if (isCorrect) {
         fb.innerText = "✅ Correct!"; fb.style.color = 'var(--success)';
-        // Confetti for the correct side
         confetti({ particleCount: 50, spread: 60, origin: { x: playerId === 1 ? 0.25 : 0.75, y: 0.6 } });
     } else {
         fb.innerText = "❌ Wrong!"; fb.style.color = 'var(--danger)';
@@ -611,12 +588,9 @@ function endGame() {
     confetti({ particleCount: 200, spread: 100, origin: { y: 0.3 } });
 }
 
-// Bind Start Button
 document.getElementById('start-btn').addEventListener('click', startGame);
 
-// Initialize App
 initAI();
-
 </script>
 </body>
 </html>
