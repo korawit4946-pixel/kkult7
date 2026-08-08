@@ -117,9 +117,9 @@ function tutorMsg(isPkg,d,n,hrs){
   msg+='น้องจ่ายพี่โดยตรง '+fmt(dayTotal)+' บาท'+(n>1?' (คนละ '+fmt(d.day)+' บาท)':'')+' แบ่งเป็น\n';
   amts.forEach(function(a,idx){
     const tot=a*n;
-    msg+='- ชั่วโมงที่ '+instLabel(idx)+' \u2192 '+fmt(tot)+' บาท'+(n>1?' (คนละ '+fmt(a)+' บาท)':'')+'\n📌 หากถึงรอบชำระแล้วน้องยังไม่ได้ชำระค่าเรียน พี่ติวเตอร์สามารถพักการเรียนในคาบถัดไปไว้ก่อนได้ และรบกวนแจ้งแอดมินพร้อมรหัสงาน เพื่อให้ทางแอดมินดำเนินการประสานกับน้อง/ผู้ปกครองจนกว่าจะชำระเรียบร้อยครับ
-';
+    msg+='- ชั่วโมงที่ '+instLabel(idx)+' \u2192 '+fmt(tot)+' บาท'+(n>1?' (คนละ '+fmt(a)+' บาท)':'')+'\n';
   });
+  msg+='📌 หากถึงรอบชำระแล้วน้องยังไม่ได้ชำระค่าเรียน ติวเตอร์สามารถพักการเรียนในคาบถัดไปไว้ก่อนได้ และรบกวนแจ้งแอดมินพร้อมรหัสงาน เพื่อให้ทางแอดมินดำเนินการประสานกับน้อง/ผู้ปกครองจนกว่าจะชำระเรียบร้อยครับ\n';
   msg+='\nส่วนอีก '+fmt(d.tadv)+' บาท แอดมินจะโอนให้หลังจากติวเตอร์ส่ง 2 อย่างนี้ครบ ‼️ส่งครั้งเดียวตอนปิดคอร์ส‼️ นะครับ\n';
   msg+='✅ 1. รูปการเรียนการสอน (เห็นบรรยากาศการเรียนชัดเจน แอดมินจะนำไปโปรโมท)\n';
   msg+='✅ 2. แคปแชท feedback จากน้อง (เช่น ถามน้องว่า "เรียนกับพี่เป็นยังไงบ้าง เข้าใจขึ้นไหม" ครับ 😊)\n';
@@ -139,11 +139,28 @@ function studentMsg(d,n,hrs){
   return '💵 ได้รับยอดแล้วครับ 💵\nเดี๋ยวทางเราจะทำการติดต่อพี่ติวเตอร์ ภายในวันที่ .... แล้วจะแจ้งทางนี้นะครับ 🥰\n📌 ในส่วนค่าเรียนที่เหลือ '+fmt(dayTotal)+' บาท'+ppNote+' สามารถแบ่งชำระทุก ๆ 5 ชั่วโมง ดังนี้ [ '+instLines+' ] ได้กับพี่ติวเตอร์ครับ 🙏🏽\n📌 กรุณาชำระค่าเรียนแต่ละรอบก่อนเริ่มเรียนในชั่วโมงที่กำหนด หากยังไม่ได้ชำระ พี่ติวเตอร์ขอสงวนสิทธิ์พักการเรียนในคาบถัดไปไว้ก่อน จนกว่าจะดำเนินการชำระเรียบร้อย เพื่อป้องกันปัญหายอดค้างชำระครับ';
 }
 
+function fallbackCopy(txt){
+  const t=document.createElement('textarea');
+  t.value=txt;
+  t.style.position='fixed';
+  t.style.opacity='0';
+  document.body.appendChild(t);
+  t.focus();
+  t.select();
+  document.execCommand('copy');
+  document.body.removeChild(t);
+}
 function doCopy(id,btnId){
   const txt=document.getElementById(id).value,btn=document.getElementById(btnId);
   const orig=btn.textContent,origBg=btn.style.background;
-  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(()=>flash(btn,orig,origBg));}
-  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);flash(btn,orig,origBg);}
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt)
+      .then(()=>flash(btn,orig,origBg))
+      .catch(()=>{fallbackCopy(txt);flash(btn,orig,origBg);});
+  }else{
+    fallbackCopy(txt);
+    flash(btn,orig,origBg);
+  }
 }
 function flash(btn,orig,origBg){
   btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';
@@ -197,20 +214,20 @@ function render(){
         +'<div style="padding:10px 14px 6px;font-size:11px;color:'+col+';line-height:2">'
         +'💡 <b>ต่อคอร์ส '+h+' ชม. ('+fmt(pubTot)+' บาท'+(n>1?' · คนละ '+fmt(pubPP):'')+')</b><br>'
         +'หักค่าทดลอง '+fmt(t.tot)+' บาท → จ่ายเพิ่มแค่ <b>'+fmt(extra)+' บาท</b> · เรียนรวม '+h+' ชม. ✓<br>'
-        +'<span style="font-size:10px;opacity:.85">📌 ค่าล่วงหน้า '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+')':'')+' · จ่ายเพิ่มจากค่าทดลอง <b>'+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+')':'')+'</b></span>'
+        +'<span style="font-size:10px;opacity:.85">📌 ค่าเรียนล่วงหน้า '+fmt(pd.adv[i]*n)+' บาท'+(n>1?' (คนละ '+fmt(pd.adv[i])+')':'')+' · จ่ายเพิ่มจากค่าทดลอง <b>'+fmt(advExtraTot)+' บาท'+(n>1?' (คนละ '+fmt(advExtraPP)+')':'')+'</b></span>'
         +'</div>'
         +'<textarea id="'+cpId+'" style="position:absolute;left:-9999px">'+stuMsg+'</textarea>'
         +'<div style="padding:0 10px 10px"><button class="trial-cp-btn" data-cp="'+cpId+'" data-col="'+col+'" style="width:100%;padding:9px;border-radius:7px;border:none;background:'+col+';color:#fff;font-family:Kanit,sans-serif;font-size:12px;font-weight:700;cursor:pointer">📋 คัดลอกข้อความให้น้อง</button></div>'
         +'</div>';
     });
-    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(t.tot)+'</div><div style="font-size:10px;opacity:.7">บาท</div></div></div><div style="background:#fff">'+rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')+rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')+rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(t.tot)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(t.kkult)+' บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">'+fmt(t.tutor)+' บาท</b></div></div></div>'+courseBoxes;
+    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">ทดลองเรียน 1 ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">น้องจ่ายรวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(t.tot)+'</div><div style="font-size:10px;opacity:.7">บาท</div></div></div><div style="background:#fff">'+rrow('ราคา/คน','บาท/ชม.',fmt(t.pp)+' บาท')+rrow('น้องจ่ายรวม',n+' คน',fmt(t.tot)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','',fmt(t.kkult)+' บาท','dark')+rrow('ค่าสอนติวเตอร์','จ่ายหลังสอนเสร็จ',fmt(t.tutor)+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนค่าเรียนล่วงหน้า <b style="color:var(--text)">'+fmt(t.tot)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(t.kkult)+' บาท</b> · ติวเตอร์ได้ <b style="color:var(--text)">'+fmt(t.tutor)+' บาท</b></div></div></div>'+courseBoxes;
   } else {
     const pd=D[tier][pkg];
     const adv_t=pd.adv[i]*n,day_t=pd.day[i]*n;
     const pub_pp=pd.adv[i]+pd.day[i],pub_t=pub_pp*n;
     const tmsg=tutorMsg(true,{tadv:pd.tadv[i],day:pd.day[i],tutor:pd.tutor[i]},n,pkg);
     const smsg=studentMsg({day:pd.day[i]},n,pkg);
-    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">'+pkg+' ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(pub_t)+'</div><div style="font-size:10px;opacity:.7">บาท · '+n+' คน</div></div></div><div style="background:#fff">'+rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')+'<div class="dv"></div>'+rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')+rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')+rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')+'<div class="dv"></div>'+rrow('จ่ายวันเรียน/คน','เริ่มชม.3 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')+rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')+'<div class="dv"></div>'+rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนมัดจำ <b style="color:var(--text)">'+fmt(adv_t)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(pd.kkult[i])+' บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">'+fmt(pd.tadv[i])+' บาท</b></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div><div class="tut">'+tmsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-tut" style="position:absolute;left:-9999px">'+tmsg+'</textarea><div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:'+col+'" onclick="doCopy(\'cp-tut\',\'cpb-tut\')">📋 คัดลอกข้อความให้ติวเตอร์</button></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div><div class="stu">'+smsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-stu" style="position:absolute;left:-9999px">'+smsg+'</textarea><div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy(\'cp-stu\',\'cpb-stu\')">📋 คัดลอกข้อความให้น้อง</button></div></div></div>';
+    html='<div class="rc"><div class="rh" style="background:'+col+'"><div><div style="font-size:10px;opacity:.8;letter-spacing:1px;font-family:Kanit,sans-serif">'+tl+'</div><div style="font-weight:700;font-size:14px;margin-top:2px">'+pkg+' ชม. · '+n+' คน</div></div><div style="text-align:right"><div style="font-size:10px;opacity:.7">ราคารวม</div><div style="font-weight:800;font-size:26px;line-height:1">'+fmt(pub_t)+'</div><div style="font-size:10px;opacity:.7">บาท · '+n+' คน</div></div></div><div style="background:#fff">'+rrow('ราคา/คน/วิชา','',fmt(pub_pp)+' บาท')+'<div class="dv"></div>'+rrow('จ่ายล่วงหน้า/คน','น้องโอนก่อนเรียน',fmt(pd.adv[i])+' บาท','tier')+rrow('จ่ายล่วงหน้ารวม',n+' คน',fmt(adv_t)+' บาท')+'<div class="dv"></div>'+rrow('ยอดหัก KKULT','จากล่วงหน้า',fmt(pd.kkult[i])+' บาท','dark')+rrow('จ่ายให้ติวเตอร์','จากล่วงหน้า',fmt(pd.tadv[i])+' บาท')+'<div class="dv"></div>'+rrow('จ่ายวันเรียน/คน','เริ่มชม.3 ทุก 5 ชม.',fmt(pd.day[i])+' บาท')+rrow('จ่ายวันเรียนรวม',n+' คน',fmt(day_t)+' บาท')+'<div class="dv"></div>'+rrow('ค่าสอนติวเตอร์รวม','ทั้งคอร์ส',fmt(pd.tutor[i])+' บาท','tier')+'</div><div class="summary"><div class="adm"><span class="adm-badge">Admin เท่านั้น</span><br>น้องโอนค่าเรียนล่วงหน้า <b style="color:var(--text)">'+fmt(adv_t)+' บาท</b> · KKULT หัก <b style="color:var(--text)">'+fmt(pd.kkult[i])+' บาท</b> · โอนให้ติวเตอร์ <b style="color:var(--text)">'+fmt(pd.tadv[i])+' บาท</b></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้ติวเตอร์ —</div><div class="sep-line"></div></div><div class="tut">'+tmsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-tut" style="position:absolute;left:-9999px">'+tmsg+'</textarea><div class="cp-wrap"><button id="cpb-tut" class="cp-btn" style="background:'+col+'" onclick="doCopy(\'cp-tut\',\'cpb-tut\')">📋 คัดลอกข้อความให้ติวเตอร์</button></div><div class="sep"><div class="sep-line"></div><div class="sep-txt">— ก็อปส่งให้น้อง —</div><div class="sep-line"></div></div><div class="stu">'+smsg.replace(/\n/g,'<br>')+'</div><textarea id="cp-stu" style="position:absolute;left:-9999px">'+smsg+'</textarea><div class="cp-wrap-last"><button id="cpb-stu" class="cp-btn" style="background:#2e7d52" onclick="doCopy(\'cp-stu\',\'cpb-stu\')">📋 คัดลอกข้อความให้น้อง</button></div></div></div>';
   }
   document.getElementById('result').innerHTML=html;
   document.querySelectorAll('.trial-cp-btn').forEach(function(btn){
@@ -219,8 +236,12 @@ function render(){
       var col2=btn.getAttribute('data-col');
       var txt=document.getElementById(cpId).value;
       var orig=btn.textContent;
-      if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';setTimeout(function(){btn.textContent=orig;btn.style.background=col2;},2000);});}
-      else{var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';setTimeout(function(){btn.textContent=orig;btn.style.background=col2;},2000);}
+      function done(){btn.textContent='✓ คัดลอกแล้ว!';btn.style.background='#1a5c3a';setTimeout(function(){btn.textContent=orig;btn.style.background=col2;},2000);}
+      if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(txt).then(done).catch(function(){fallbackCopy(txt);done();});
+      }else{
+        fallbackCopy(txt);done();
+      }
     });
   });
 }
