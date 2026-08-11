@@ -116,7 +116,7 @@ function tutorMsg(isPkg,d,n,hrs){
   let msg='💰 ค่าสอนงานนี้ '+hrs+' ชม. รวม '+fmt(d.tutor)+' บาท\n';
 
 msg+='น้องจ่ายพี่โดยตรง '+fmt(dayTotal)+' บาท'+(n>1?' (คนละ '+fmt(d.day)+' บาท)':'')+'\n';
-msg+='*สามารถแจ้งเก็บกับน้องได้เลยเมื่อถึงชั่วโมงจบชั่วโมง ดังนี้*\n';
+msg+='*สามารถแจ้งเก็บกับน้องได้เลยเมื่อจบชั่วโมง ดังนี้*\n';
 
 amts.forEach(function(a,idx){
   const tot=a*n;
