@@ -114,7 +114,7 @@ function tutorMsg(isPkg,d,n,hrs){
   const dayTotal=d.day*n;
   const amts=getInstAmounts(d.day,hrs);
   let msg='💰 ค่าสอนงานนี้ '+hrs+' ชม. รวม '+fmt(d.tutor)+' บาท\n';
-  msg+='น้องจ่ายพี่โดยตรง '+fmt(dayTotal)+' บาท'+(n>1?' (คนละ '+fmt(d.day)+' บาท)':''สามารถเก็บกับน้องได้เลย) +' แบ่งเป็น\n';
+  msg+='น้องจ่ายพี่โดยตรง '+fmt(dayTotal)+' บาท'+(n>1?' (คนละ '+fmt(d.day)+' บาท)':'สามารถเก็บกับน้องได้เลย') +' แบ่งเป็น\n';
   amts.forEach(function(a,idx){
     const tot=a*n;
     msg+='- ชั่วโมงที่ '+instLabel(idx)+' \u2192 '+fmt(tot)+' บาท'+(n>1?' (คนละ '+fmt(a)+' บาท)':'')+'\n';
